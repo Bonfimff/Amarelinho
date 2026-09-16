@@ -19,13 +19,25 @@ export const amarelinho = (cls = '') => `<svg class="bus-art ${cls}" viewBox="0 
 // ---------------------------------------------------------------------------------------------
 // Amarelinho em perspectiva isométrica (faces superior, lateral e frontal/traseira visíveis).
 // Eixos: x = comprimento (frente em x = L), y = largura, z = altura.
-// Projeção isométrica: u = (x - y)·cos30°, v = (x + y)·sen30° - z.
-// Variante 'front' mostra a frente (ônibus indo para baixo na tela); 'rear' mostra a traseira (indo para cima).
-// Espelhando horizontalmente, cobre as quatro diagonais.
+// Projeção: gira o ônibus em torno do próprio centro (guinada YAW) e projeta em isométrica
+// u = (x - y)·cos30°, v = (x + y)·sen30° - z. A guinada alinha o ônibus à direção da via.
+// Variante 'front' mostra a frente; 'rear' mostra a traseira. Com o espelhamento horizontal,
+// as duas variantes cobrem a volta completa (ver ISO_VIEWS).
 // ---------------------------------------------------------------------------------------------
 const ISO = { L: 46, W: 15, H: 19 };
 const C30 = Math.cos(Math.PI / 6);
-const iso = (x, y, z) => [(x - y) * C30, (x + y) * 0.5 - z];
+// Além de ±45° o ônibus passaria a mostrar as faces de trás; cada variante cobre um quadrante.
+const ISO_YAW_MAX = 45;
+const ISO_YAW_STEP = 5; // guinadas são arredondadas para este passo (cada uma vira um SVG em cache)
+// Guinada, em radianos, aplicada pela projeção. Só varia dentro de buildIsoBus (execução síncrona).
+let YAW = 0;
+const iso = (x, y, z) => {
+  const dx = x - ISO.L / 2;
+  const dy = y - ISO.W / 2;
+  const rx = dx * Math.cos(YAW) - dy * Math.sin(YAW);
+  const ry = dx * Math.sin(YAW) + dy * Math.cos(YAW);
+  return [(rx - ry) * C30, (rx + ry) * 0.5 - z];
+};
 const pts = (list) => list.map(([x, y, z]) => iso(x, y, z).map((n) => n.toFixed(2)).join(',')).join(' ');
 const poly = (list, attrs) => `<polygon points="${pts(list)}" ${attrs}/>`;
 const sideRect = (x0, x1, z0, z1, attrs) => poly([[x0, ISO.W, z0], [x1, ISO.W, z0], [x1, ISO.W, z1], [x0, ISO.W, z1]], attrs);
@@ -36,7 +48,8 @@ const sideCircle = (xc, zc, r, attrs) => poly(Array.from({ length: 18 }, (_, i) 
   return [xc + r * Math.cos(t), ISO.W, zc + r * Math.sin(t)];
 }), attrs);
 
-function buildIsoBus(variant) {
+function buildIsoBus(variant, yawDeg) {
+  YAW = (yawDeg * Math.PI) / 180;
   const { L, W, H } = ISO;
   const front = variant === 'front';
   const line = 'stroke="#14337E" stroke-width="0.9" stroke-linejoin="round"';
@@ -77,39 +90,76 @@ function buildIsoBus(variant) {
   }
   parts.push(endRect(0.6, W - 0.6, 0.3, 2.2, 'fill="#B9C2D0" stroke="#14337E" stroke-width=".4"'));
 
-  // viewBox centrado no centro da base do ônibus (para o marcador ficar sobre a coordenada)
-  const [cu, cv] = iso(L / 2, W / 2, 0);
-  const corners = [[-3, -2, 0], [L + 4, -2, 0], [L + 4, W + 4, 0], [-3, W + 4, 0], [0, 0, H + 1], [L, 0, H + 1], [0, W, H + 1], [L, W, H + 1]].map(([x, y, z]) => iso(x, y, z));
-  const hw = Math.max(...corners.map(([u]) => Math.abs(u - cu))) + 1;
-  const hh = Math.max(...corners.map(([, v]) => Math.abs(v - cv))) + 1;
-  return `<svg class="bus-iso" viewBox="${(cu - hw).toFixed(1)} ${(cv - hh).toFixed(1)} ${(hw * 2).toFixed(1)} ${(hh * 2).toFixed(1)}" aria-hidden="true" focusable="false">${parts.join('')}</svg>`;
+  const { hw, hh } = ISO_BOX;
+  return `<svg class="bus-iso" viewBox="${-hw} ${-hh} ${hw * 2} ${hh * 2}" aria-hidden="true" focusable="false">${parts.join('')}</svg>`;
 }
 
+// Enquadramento fixo (centrado na base do ônibus, que é onde fica a coordenada do marcador):
+// o mesmo para todas as guinadas, para o ícone não mudar de tamanho ao virar.
+const ISO_BOX = (() => {
+  const { L, W, H } = ISO;
+  const corners = [[-3, -2, 0], [L + 4, -2, 0], [L + 4, W + 4, 0], [-3, W + 4, 0], [0, 0, H + 1], [L, 0, H + 1], [0, W, H + 1], [L, W, H + 1]];
+  let hw = 0;
+  let hh = 0;
+  for (let deg = -ISO_YAW_MAX; deg <= ISO_YAW_MAX; deg += 1) {
+    YAW = (deg * Math.PI) / 180;
+    for (const [x, y, z] of corners) {
+      const [u, v] = iso(x, y, z);
+      hw = Math.max(hw, Math.abs(u));
+      hh = Math.max(hh, Math.abs(v));
+    }
+  }
+  YAW = 0;
+  return { hw: Math.ceil(hw + 1), hh: Math.ceil(hh + 1) };
+})();
+
 const ISO_CACHE = {};
-/** @param {'front'|'rear'} variant */
-export const amarelinhoIso = (variant = 'front') => (ISO_CACHE[variant] ??= buildIsoBus(variant));
+/** @param {'front'|'rear'} variant @param {number} yawDeg guinada em graus, dentro de ±ISO_YAW_MAX */
+export const amarelinhoIso = (variant = 'front', yawDeg = 0) => {
+  const key = `${variant}:${yawDeg}`;
+  return (ISO_CACHE[key] ??= buildIsoBus(variant, yawDeg));
+};
 
 // Vista isométrica por quadrante do rumo na tela: 0 = NE, 1 = SE, 2 = SO, 3 = NO.
 // Frente visível quando o movimento é para baixo (90°-270°); espelhada quando é para a esquerda.
+// `base` devolve o rumo equivalente em 90°-180°, faixa que a guinada consegue desenhar.
 const ISO_VIEWS = [
-  { variant: 'rear', mirror: true },
-  { variant: 'front', mirror: false },
-  { variant: 'front', mirror: true },
-  { variant: 'rear', mirror: false }
+  { variant: 'rear', mirror: true, base: (b) => 180 - b },
+  { variant: 'front', mirror: false, base: (b) => b },
+  { variant: 'front', mirror: true, base: (b) => 360 - b },
+  { variant: 'rear', mirror: false, base: (b) => b - 180 }
 ];
 
 export const isoQuadrant = (bearing) => Math.floor((((bearing % 360) + 360) % 360) / 90) % 4;
 export const isoView = (quadrant) => ISO_VIEWS[quadrant];
-export function isoOrientation(bearing) { return isoView(isoQuadrant(bearing)); }
+
+/**
+ * Guinada que faz o eixo do ônibus apontar para `bearing` (90°-180°) depois da projeção.
+ * Projetando a frente (1,0,0) girada de ψ, o rumo desenhado sai de atan2 entre as duas
+ * componentes; invertendo, φ = atan2(-√3·cos b, sen b) e ψ = φ - 45°.
+ */
+function isoYaw(bearing) {
+  const rad = (bearing * Math.PI) / 180;
+  const phi = (Math.atan2(-Math.sqrt(3) * Math.cos(rad), Math.sin(rad)) * 180) / Math.PI;
+  const yaw = Math.max(-ISO_YAW_MAX, Math.min(ISO_YAW_MAX, phi - 45));
+  return Math.round(yaw / ISO_YAW_STEP) * ISO_YAW_STEP;
+}
+
+/** Vista (variante, espelho e guinada) que desenha o ônibus alinhado ao rumo dado. */
+export function isoPose(bearing, quadrant = isoQuadrant(bearing)) {
+  const view = ISO_VIEWS[quadrant];
+  return { variant: view.variant, mirror: view.mirror, yaw: isoYaw(view.base(((bearing % 360) + 360) % 360)) };
+}
 
 /** Diferença angular assinada entre dois rumos, em (-180, 180]. */
 const angDiff = (a, b) => ((((a - b) % 360) + 540) % 360) - 180;
 
 /**
  * Mantém o quadrante atual enquanto o rumo não avançar `margin` graus dentro do vizinho.
- * Sem isso o ícone fica trocando de vista sempre que a rota oscila em torno de uma fronteira.
+ * Sem isso a vista ficaria trocando sempre que a rota oscila em torno de uma fronteira.
+ * A folga é pequena porque agora só adia a troca de vista: o alinhamento com a via é da guinada.
  */
-export function stableIsoQuadrant(bearing, prev, margin = 16) {
+export function stableIsoQuadrant(bearing, prev, margin = 6) {
   const q = isoQuadrant(bearing);
   if (prev == null || q === prev) return q;
   const step = (((q - prev) % 4) + 4) % 4;

@@ -512,8 +512,9 @@ a.arrivals__item:hover { border-color: var(--blue-600); }
 
 /* ---------- Marcadores do mapa ---------- */
 .bus-mk { position: relative; width: 66px; height: 66px; }
+/* Largura maior que o marcador: o desenho reserva folga para o ônibus em qualquer guinada. */
 .bus-mk__vehicle {
-  position: absolute; left: 50%; top: 50%; width: 66px; margin-left: -33px; z-index: 2; transform: translateY(-50%);
+  position: absolute; left: 50%; top: 50%; width: 73px; margin-left: -36.5px; z-index: 2; transform: translateY(-50%);
   filter: drop-shadow(0 1px 1px rgba(10, 22, 60, .35));
 }
 .bus-mk__vehicle.is-mirrored { transform: translateY(-50%) scaleX(-1); }

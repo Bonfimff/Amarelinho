@@ -1,7 +1,7 @@
 // Controlador do mapa (Leaflet + OpenStreetMap). Apresentação apenas: recebe dados prontos da camada de serviço.
 import { APP_CONFIG } from '../../config.js';
 import { courseAtDistance, pointAtDistance, sliceRoute } from '../../lib/geo.js';
-import { amarelinhoIso, isoOrientation, isoQuadrant, isoView, stableIsoQuadrant } from '../icons.js';
+import { amarelinhoIso, isoPose, isoQuadrant, stableIsoQuadrant } from '../icons.js';
 import { esc } from '../../lib/text.js';
 import { BASE_STYLE } from './baseStyle.js';
 
@@ -225,8 +225,8 @@ export class MapController {
   }
 
   #busHtml(v) {
-    const o = isoOrientation(v.position.bearing);
-    return `<div class="bus-mk"><span class="bus-mk__vehicle ${o.mirror ? 'is-mirrored' : ''}" data-variant="${o.variant}">${amarelinhoIso(o.variant)}</span><span class="bus-mk__tag">${esc(v.lineId)}</span></div>`;
+    const o = isoPose(v.position.bearing);
+    return `<div class="bus-mk"><span class="bus-mk__vehicle ${o.mirror ? 'is-mirrored' : ''}" data-pose="${o.variant}:${o.yaw}">${amarelinhoIso(o.variant, o.yaw)}</span><span class="bus-mk__tag">${esc(v.lineId)}</span></div>`;
   }
 
   /**
@@ -238,15 +238,16 @@ export class MapController {
     return Math.min(COURSE_MAX_M, Math.max(COURSE_MIN_M, mPerPx * COURSE_PX));
   }
 
-  /** Troca a vista isométrica (frente/traseira, espelhada ou não) quando o ônibus muda de sentido na tela. */
+  /** Desenha o ônibus alinhado à via: a guinada segue o rumo e a vista troca a cada quadrante. */
   #orient(el, entry, course) {
     const vehicle = el.querySelector('.bus-mk__vehicle');
     if (!vehicle) return;
-    const quadrant = stableIsoQuadrant(course, entry.quadrant);
-    if (quadrant === entry.quadrant && vehicle.dataset.variant) return;
-    entry.quadrant = quadrant;
-    const o = isoView(quadrant);
-    if (vehicle.dataset.variant !== o.variant) { vehicle.dataset.variant = o.variant; vehicle.innerHTML = amarelinhoIso(o.variant); }
+    entry.quadrant = stableIsoQuadrant(course, entry.quadrant);
+    const o = isoPose(course, entry.quadrant);
+    const pose = `${o.variant}:${o.yaw}`;
+    if (vehicle.dataset.pose === pose) return;
+    vehicle.dataset.pose = pose;
+    vehicle.innerHTML = amarelinhoIso(o.variant, o.yaw);
     vehicle.classList.toggle('is-mirrored', o.mirror);
   }
 
