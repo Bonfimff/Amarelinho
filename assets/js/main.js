@@ -1,4 +1,5 @@
 import { transport, liveFeed } from './services/transportService.js';
+import { analytics } from './services/analytics.js';
 import { MapController } from './ui/map/mapController.js';
 import { BottomSheet } from './ui/sheet.js';
 import { parseLocation, navigate } from './ui/router.js';
@@ -49,9 +50,11 @@ async function render() {
 
   if (!View) {
     viewEl.innerHTML = '<p class="empty">Página não encontrada. <a href="#/">Voltar ao início</a></p>';
+    analytics.tela('pagina_nao_encontrada', { rota: location.hash });
     current = null;
     return;
   }
+  analytics.tela(loc.view, { params: loc.params, query: loc.query });
 
   current = View;
   map.on('follow', () => {}); // cada tela registra o seu (evita sobra da tela anterior)
@@ -80,9 +83,17 @@ async function render() {
 
   try {
     await View.mount(viewEl, currentCtx);
+    // Recursos que a tela colocou de fato na frente da pessoa.
+    analytics.recurso('tela_montada', {
+      tela: loc.view,
+      mapaComLinha: Boolean(viewEl.querySelector('[data-vehicles], [data-upcoming]')),
+      distritos: Boolean(document.querySelector('.district-legend')),
+      simulacao: Boolean(document.querySelector('.sim-float:not([hidden])'))
+    });
   } catch (err) {
     console.error(err);
     viewEl.innerHTML = '<p class="empty">Não foi possível carregar esta tela.</p>';
+    analytics.registra('erro', 'falha_ao_montar_tela', { tela: loc.view, mensagem: String(err && err.message).slice(0, 200) });
   }
   document.title = `${View.title ? `${View.title} | ` : ''}Amarelinho Tarifa Zero Magé`;
 }

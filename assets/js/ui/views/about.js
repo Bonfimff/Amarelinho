@@ -125,6 +125,13 @@ export default {
       </section>
 
       <section class="card prose">
+        <h2 class="card-title">Dados de uso do protótipo</h2>
+        <p>Para entender como as pessoas usam a demonstração e melhorá-la, o protótipo registra a navegação: telas abertas, recursos exibidos, ações realizadas (como iniciar a simulação ou abrir uma linha), tipo de aparelho, tamanho de tela, idioma, data e hora.</p>
+        <p><strong>Não são coletados dados pessoais.</strong> Não há cadastro, não pedimos nome, e-mail ou telefone, não usamos a localização real do aparelho e não guardamos o endereço IP. A identificação é um número aleatório gerado no próprio navegador, sem ligação com a pessoa, que pode ser apagado a qualquer momento limpando os dados do site.</p>
+        <p class="fine">Os registros são usados apenas para avaliar o uso desta demonstração e não são compartilhados com terceiros.</p>
+      </section>
+
+      <section class="card prose">
         <h2 class="card-title">Desenvolvimento</h2>
         <p>Protótipo concebido e desenvolvido pela <strong>Exksvol</strong>.</p>
         <a class="dev-credit" href="https://www.exksvol.com" target="_blank" rel="noopener" aria-label="Exksvol, desenvolvedora do protótipo (abre em nova aba)">
