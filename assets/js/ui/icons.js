@@ -89,12 +89,33 @@ const ISO_CACHE = {};
 /** @param {'front'|'rear'} variant */
 export const amarelinhoIso = (variant = 'front') => (ISO_CACHE[variant] ??= buildIsoBus(variant));
 
-/** Escolhe a variante isométrica para um rumo (0° = norte, sentido horário). */
-export function isoOrientation(bearing) {
-  const b = ((bearing % 360) + 360) % 360;
-  // Na tela: frente visível andando para baixo (90°–270°); espelha quando o movimento é para a esquerda (180°–360°).
-  const front = b >= 90 && b < 270;
-  return { variant: front ? 'front' : 'rear', mirror: front ? b >= 180 : b < 90 };
+// Vista isométrica por quadrante do rumo na tela: 0 = NE, 1 = SE, 2 = SO, 3 = NO.
+// Frente visível quando o movimento é para baixo (90°-270°); espelhada quando é para a esquerda.
+const ISO_VIEWS = [
+  { variant: 'rear', mirror: true },
+  { variant: 'front', mirror: false },
+  { variant: 'front', mirror: true },
+  { variant: 'rear', mirror: false }
+];
+
+export const isoQuadrant = (bearing) => Math.floor((((bearing % 360) + 360) % 360) / 90) % 4;
+export const isoView = (quadrant) => ISO_VIEWS[quadrant];
+export function isoOrientation(bearing) { return isoView(isoQuadrant(bearing)); }
+
+/** Diferença angular assinada entre dois rumos, em (-180, 180]. */
+const angDiff = (a, b) => ((((a - b) % 360) + 540) % 360) - 180;
+
+/**
+ * Mantém o quadrante atual enquanto o rumo não avançar `margin` graus dentro do vizinho.
+ * Sem isso o ícone fica trocando de vista sempre que a rota oscila em torno de uma fronteira.
+ */
+export function stableIsoQuadrant(bearing, prev, margin = 16) {
+  const q = isoQuadrant(bearing);
+  if (prev == null || q === prev) return q;
+  const step = (((q - prev) % 4) + 4) % 4;
+  if (step === 2) return q; // meia-volta: troca na hora
+  const boundary = (step === 1 ? q : prev) * 90;
+  return Math.abs(angDiff(bearing, boundary)) >= margin ? q : prev;
 }
 
 export const icons = {

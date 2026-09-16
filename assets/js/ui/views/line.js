@@ -11,7 +11,7 @@ const TABS = [
 ];
 
 export default {
-  sheet: 'half',
+  sheet: 'full',
   title: 'Linha',
 
   async mount(el, ctx) {

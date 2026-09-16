@@ -43,6 +43,21 @@ export function pointAtDistance(points, alongM) {
   };
 }
 
+/**
+ * Rumo médio da rota em torno de um ponto, medido sobre uma janela de `windowM` metros.
+ * Serve para orientar o ícone pela direção geral do trajeto, e não por cada curva curta.
+ */
+export function courseAtDistance(points, alongM, windowM = 200) {
+  const total = points[points.length - 1][2];
+  const half = Math.max(1, windowM / 2);
+  const clamp = (m) => Math.max(0, Math.min(total, m));
+  const a = pointAtDistance(points, clamp(alongM - half));
+  const b = pointAtDistance(points, clamp(alongM + half));
+  // Janela degenerada (início/fim da rota ou rota curta): usa o rumo do segmento atual.
+  if (haversine(a.lat, a.lng, b.lat, b.lng) < 1) return pointAtDistance(points, alongM).bearing;
+  return bearing(a.lat, a.lng, b.lat, b.lng);
+}
+
 /** Converte tempo de condução acumulado em distância ao longo da rota. */
 export function distanceAtDriveTime(points, driveSec) {
   const i = indexAtOrBefore(points, driveSec, 3);

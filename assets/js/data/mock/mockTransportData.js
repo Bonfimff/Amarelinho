@@ -159,8 +159,8 @@ function tripState(line, dir, depSec, now) {
 // ---------- Provedor (mesma interface do provedor HTTP) ----------
 export function createMockTransportProvider({ demo, speed }) {
   // A simulação acompanha a hora atual do aparelho: os ônibus aparecem onde estariam agora, segundo o quadro de horários.
+  // Comeca parada: quem decide iniciar e a pessoa, pelo controle de simulacao.
   const clock = new SimulationClock({ startSec: nowSec(), speed, resetTo: () => nowSec() });
-  clock.play();
 
   const lineDto = ({ line, directions }) => ({
     id: line.id,

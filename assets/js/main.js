@@ -68,7 +68,7 @@ async function render() {
     getLine: (id) => lineCache.find((l) => l.id === id)
   };
   sheet.setLocked(Boolean(View.sheetLocked));
-  sheet.set(window.matchMedia('(min-width: 1024px)').matches ? 'full' : View.sheet || 'half');
+  sheet.set(window.matchMedia('(min-width: 1024px)').matches ? 'full' : View.sheet || 'full');
   viewEl.classList.remove('is-entering');
   void viewEl.offsetWidth;
   viewEl.classList.add('is-entering');

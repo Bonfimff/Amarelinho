@@ -1,13 +1,17 @@
 // Controlador do mapa (Leaflet + OpenStreetMap). Apresentação apenas: recebe dados prontos da camada de serviço.
 import { APP_CONFIG } from '../../config.js';
-import { pointAtDistance, sliceRoute } from '../../lib/geo.js';
-import { amarelinhoIso, isoOrientation } from '../icons.js';
+import { courseAtDistance, pointAtDistance, sliceRoute } from '../../lib/geo.js';
+import { amarelinhoIso, isoOrientation, isoQuadrant, isoView, stableIsoQuadrant } from '../icons.js';
 import { esc } from '../../lib/text.js';
 import { BASE_STYLE } from './baseStyle.js';
 
 const L = window.L;
 // Limites aproximados do município de Magé (Inhomirim/Santo Aleixo ao norte, Suruí e a baía ao sul).
 const MIN_FIT_PX = 80; // altura minima de mapa preservada ao enquadrar
+// Trecho de rota (em pixels de tela) usado para definir para onde o onibus aponta.
+const COURSE_PX = 80;
+const COURSE_MIN_M = 60;
+const COURSE_MAX_M = 2000;
 const MAGE_BOUNDS = [[-22.56, -43.21], [-22.71, -43.01]];
 
 export class MapController {
@@ -17,7 +21,7 @@ export class MapController {
   #vehicleLayer;
   #shapes = new Map(); // `${lineId}:${directionId}` -> points
   #stopMarkers = new Map();
-  #vehicles = new Map(); // id -> { marker, fromM, toM, start, duration, shapeKey, bearing }
+  #vehicles = new Map(); // id -> { marker, fromM, toM, start, duration, shapeKey, quadrant }
   #followId = null;
   #progressId = null; // viagem cujo trecho percorrido é pintado na rota
   #traveled = null;
@@ -199,7 +203,7 @@ export class MapController {
         });
         marker.on('click', () => this.#handlers.vehicle(v.id));
         marker.addTo(this.#vehicleLayer);
-        entry = { marker, fromM: v.alongM, toM: v.alongM, start: now, duration: 0, shapeKey, bearing: v.position.bearing };
+        entry = { marker, fromM: v.alongM, toM: v.alongM, start: now, duration: 0, shapeKey, quadrant: isoQuadrant(v.position.bearing) };
         this.#vehicles.set(v.id, entry);
       } else {
         const current = this.#currentAlong(entry, now);
@@ -225,11 +229,23 @@ export class MapController {
     return `<div class="bus-mk"><span class="bus-mk__vehicle ${o.mirror ? 'is-mirrored' : ''}" data-variant="${o.variant}">${amarelinhoIso(o.variant)}</span><span class="bus-mk__tag">${esc(v.lineId)}</span></div>`;
   }
 
+  /**
+   * Comprimento de rota, em metros, que define o rumo do ícone: sempre o mesmo trecho
+   * visual (COURSE_PX), então com pouco zoom a janela é longa e a vista para de oscilar.
+   */
+  #courseWindow() {
+    const mPerPx = (156543.03392 * Math.cos((this.#map.getCenter().lat * Math.PI) / 180)) / 2 ** this.#map.getZoom();
+    return Math.min(COURSE_MAX_M, Math.max(COURSE_MIN_M, mPerPx * COURSE_PX));
+  }
+
   /** Troca a vista isométrica (frente/traseira, espelhada ou não) quando o ônibus muda de sentido na tela. */
-  #orient(el, bearing) {
+  #orient(el, entry, course) {
     const vehicle = el.querySelector('.bus-mk__vehicle');
     if (!vehicle) return;
-    const o = isoOrientation(bearing);
+    const quadrant = stableIsoQuadrant(course, entry.quadrant);
+    if (quadrant === entry.quadrant && vehicle.dataset.variant) return;
+    entry.quadrant = quadrant;
+    const o = isoView(quadrant);
     if (vehicle.dataset.variant !== o.variant) { vehicle.dataset.variant = o.variant; vehicle.innerHTML = amarelinhoIso(o.variant); }
     vehicle.classList.toggle('is-mirrored', o.mirror);
   }
@@ -250,6 +266,7 @@ export class MapController {
       for (const [id, e] of this.#vehicles) if (e.shapeKey === this.#lineKey && e.status !== 'arrived') { progressId = id; break; }
     }
     if (!progressId && this.#traveled) this.#traveled.setLatLngs([]);
+    const courseWindow = this.#courseWindow();
     this.#vehicles.forEach((entry, id) => {
       const points = this.#shapes.get(entry.shapeKey);
       if (!points) return;
@@ -257,7 +274,7 @@ export class MapController {
       const p = pointAtDistance(points, along);
       entry.marker.setLatLng([p.lat, p.lng]);
       const el = entry.marker.getElement();
-      if (el) this.#orient(el, p.bearing);
+      if (el) this.#orient(el, entry, courseAtDistance(points, along, courseWindow));
       if (id === progressId && this.#traveled) {
         this.#traveled.setLatLngs(sliceRoute(points, 0, along));
       }

@@ -2,7 +2,7 @@ import { navigate } from '../router.js';
 
 // "Ao vivo": abre o ônibus da demonstração (ou o primeiro em circulação da TZ01).
 export default {
-  sheet: 'peek',
+  sheet: 'full',
   title: 'Ao vivo',
 
   async mount(el, ctx) {

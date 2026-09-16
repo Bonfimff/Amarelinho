@@ -1,14 +1,16 @@
 // Painel inferior arrastável (celular). No desktop vira painel lateral fixo.
-// collapsed: só a alça fica visível; o mapa ocupa a tela toda.
-const SNAPS = { collapsed: 0, peek: 0.36, half: 0.58, full: 1 };
+// Apenas dois estados: full (cobre a tela) e collapsed (só a alça; o mapa ocupa tudo).
+// Nada de alturas intermediárias dividindo a tela entre painel e mapa.
+const SNAPS = { collapsed: 0, full: 1 };
 const COLLAPSED_PX = 34;
-const LABELS = { collapsed: 'recolhido', peek: 'baixo', half: 'meia altura', full: 'expandido' };
+const LABELS = { collapsed: 'recolhido', full: 'expandido' };
+/** Qualquer pedido de altura parcial vira painel inteiro. */
+const norm = (state) => (state === 'collapsed' ? 'collapsed' : 'full');
 
 export class BottomSheet {
   #el;
   #handle;
-  #state = 'half';
-  #lastOpen = 'half';
+  #state = 'full';
   #mq = window.matchMedia('(min-width: 1024px)');
   #onChange;
   #drag = null;
@@ -22,10 +24,8 @@ export class BottomSheet {
     this.#handle.addEventListener('click', () => { if (!this.#locked && !this.#drag?.moved) this.cycle(); });
     this.#handle.addEventListener('keydown', (e) => {
       if (this.#locked) return;
-      const order = ['collapsed', 'peek', 'half', 'full'];
-      const i = order.indexOf(this.#state);
-      if (e.key === 'ArrowUp') { e.preventDefault(); this.set(order[Math.min(i + 1, 3)]); }
-      if (e.key === 'ArrowDown') { e.preventDefault(); this.set(order[Math.max(i - 1, 0)]); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); this.set('full'); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); this.set('collapsed'); }
     });
     window.addEventListener('resize', () => this.#apply(false));
     this.#mq.addEventListener('change', () => this.#apply(false));
@@ -43,20 +43,16 @@ export class BottomSheet {
   #fullHeight() { return this.#el.getBoundingClientRect().height; }
 
   #visible(state) {
-    const h = this.#fullHeight();
-    if (state === 'collapsed') return COLLAPSED_PX;
-    return state === 'full' ? h : Math.round(window.innerHeight * SNAPS[state]);
+    return state === 'collapsed' ? COLLAPSED_PX : this.#fullHeight();
   }
 
   set(state, animate = true) {
-    if (!(state in SNAPS)) return;
-    this.#state = state;
-    if (state !== 'collapsed') this.#lastOpen = state;
+    this.#state = norm(state);
     this.#apply(animate);
   }
 
-  /** Toque na alça: recolhe totalmente ou reabre na última altura usada. */
-  cycle() { this.set(this.#state === 'collapsed' ? this.#lastOpen : 'collapsed'); }
+  /** Toque na alça: recolhe por completo ou reabre por completo. */
+  cycle() { this.set(this.#state === 'collapsed' ? 'full' : 'collapsed'); }
 
   #apply(animate) {
     this.#el.dataset.state = this.#state;
@@ -93,8 +89,8 @@ export class BottomSheet {
       this.#handle.removeEventListener('pointercancel', up);
       if (!this.#drag.moved) return;
       const visible = h - new DOMMatrixReadOnly(getComputedStyle(this.#el).transform).m42;
-      const nearest = Object.keys(SNAPS).reduce((best, s) => (Math.abs(this.#visible(s) - visible) < Math.abs(this.#visible(best) - visible) ? s : best), 'half');
-      this.set(nearest);
+      // Solta no estado mais próximo: metade do caminho decide entre recolher e abrir tudo.
+      this.set(visible > (h + COLLAPSED_PX) / 2 ? 'full' : 'collapsed');
       setTimeout(() => { this.#drag = null; }, 0);
       ev.preventDefault();
     };

@@ -39,7 +39,11 @@ export class SimControls {
     `;
     host.appendChild(this.#el);
 
-    this.#el.querySelector('[data-toggle]').addEventListener('click', () => (clock.playing ? clock.pause() : clock.play()));
+    this.#el.querySelector('[data-toggle]').addEventListener('click', () => {
+      if (clock.playing) { clock.pause(); return; }
+      clock.play();
+      this.setMinimized(true); // ao iniciar, o card sai da frente do mapa
+    });
     this.#el.querySelector('[data-restart]').addEventListener('click', () => { if (this.#opts.onRestart) this.#opts.onRestart(); else clock.reset(); });
     this.#el.querySelectorAll('[data-speed]').forEach((b) => b.addEventListener('click', () => clock.setSpeed(Number(b.dataset.speed))));
     this.#el.querySelector('[data-follow]').addEventListener('change', (e) => {

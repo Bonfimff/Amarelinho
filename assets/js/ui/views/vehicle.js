@@ -14,7 +14,7 @@ const STATUS = {
 };
 
 export default {
-  sheet: 'peek',
+  sheet: 'full',
   title: 'Ônibus',
 
   async mount(el, ctx) {
@@ -126,11 +126,11 @@ export default {
       })}`;
 
       const fin = $('[data-finished]');
-      // Fim da simulação: ao concluir a viagem acompanhada, o relógio volta à hora atual em 1x.
+      // Fim da simulação: ao concluir a viagem acompanhada, o relógio volta à hora atual em 1x e fica parado.
       if (clock && statusKey === 'arrived' && fin.dataset.key && fin.dataset.key !== 'arrived' && fin.dataset.key !== 'scheduled') {
+        clock.pause();
         clock.reset();
-        clock.play();
-        announce('Viagem concluída. Simulação de volta à hora atual.');
+        announce('Viagem concluída. Simulação de volta à hora atual, pausada.');
       }
       if (fin.dataset.key === statusKey) {
         // mantém o bloco (e o foco do botão) enquanto o estado não muda

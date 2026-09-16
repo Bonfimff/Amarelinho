@@ -5,7 +5,7 @@ import { lineChip, arrivalsList, simBadge } from '../components.js';
 import { secToHHMM } from '../../lib/time.js';
 
 export default {
-  sheet: 'half',
+  sheet: 'full',
   title: 'Ponto',
 
   async mount(el, ctx) {
