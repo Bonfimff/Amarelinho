@@ -4,6 +4,8 @@
 import { APP_CONFIG } from '../config.js';
 
 const chave = { visitante: 'amarelinho:visitante', sessao: 'amarelinho:sessao' };
+// Teto da fila quando um envio falha e os eventos voltam: guarda os mais recentes.
+const FILA_MAX = 200;
 
 const sorteia = () => (crypto.randomUUID ? crypto.randomUUID() : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`);
 
@@ -156,22 +158,27 @@ export class Analytics {
     }, { capture: true });
   }
 
-  /** Envia a fila. Usa sendBeacon quando a página está saindo, que sobrevive ao fechamento. */
+  /**
+   * Envia a fila. Usa sendBeacon quando a página está saindo, que sobrevive ao fechamento.
+   * Se o envio falhar (rede fora, API indisponível), os eventos voltam para a fila e seguem na
+   * próxima tentativa — sem isso, um lote perdido levava junto o início da sessão.
+   */
   envia() {
     if (!this.#ligado || !this.#fila.length) return;
-    const lote = { enviadoEm: new Date().toISOString(), eventos: this.#fila.splice(0, this.#fila.length) };
-    const corpo = JSON.stringify(lote);
+    const lote = this.#fila.splice(0, this.#fila.length);
+    const corpo = JSON.stringify({ enviadoEm: new Date().toISOString(), eventos: lote });
+    const devolve = () => { this.#fila = lote.concat(this.#fila).slice(-FILA_MAX); };
     try {
       if (navigator.sendBeacon && document.visibilityState === 'hidden') {
-        navigator.sendBeacon(this.#endpoint, new Blob([corpo], { type: 'application/json' }));
+        if (!navigator.sendBeacon(this.#endpoint, new Blob([corpo], { type: 'application/json' }))) devolve();
         return;
       }
       fetch(this.#endpoint, {
         method: 'POST', body: corpo, keepalive: true, credentials: 'omit', mode: 'cors',
         headers: { 'Content-Type': 'application/json' }
-      }).catch(() => {});
+      }).then((r) => { if (!r.ok) devolve(); }).catch(devolve);
     } catch {
-      // Auditoria nunca pode atrapalhar o uso do app.
+      devolve(); // Auditoria nunca pode atrapalhar o uso do app.
     }
   }
 }
