@@ -123,6 +123,15 @@ export default {
         <p>Não possui vínculo institucional, representação ou autorização oficial da Prefeitura Municipal de Magé.</p>
         <p>As informações de localização, velocidade, previsão de chegada, quantidade de veículos e demais dados dinâmicos exibidos no modo de demonstração são simulados e não representam a operação real da frota.</p>
       </section>
+
+      <section class="card prose">
+        <h2 class="card-title">Desenvolvimento</h2>
+        <p>Protótipo concebido e desenvolvido pela <strong>Exksvol</strong>.</p>
+        <a class="dev-credit" href="https://www.exksvol.com" target="_blank" rel="noopener" aria-label="Exksvol, desenvolvedora do protótipo (abre em nova aba)">
+        <span class="dev-credit__label">Desenvolvido por</span>
+        <img src="assets/brand/exksvol.png" alt="Exksvol Systems" width="790" height="160" />
+      </a>
+      </section>
     `;
   }
 };

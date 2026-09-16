@@ -45,6 +45,10 @@ export default {
 
       ${raw(demoNotice())}
       <p class="foot-links"><a href="${href('/sobre')}">Sobre o projeto</a> · <a href="${href('/sobre')}">Fontes das informações</a></p>
+      <a class="dev-credit" href="https://www.exksvol.com" target="_blank" rel="noopener" aria-label="Exksvol, desenvolvedora do protótipo (abre em nova aba)">
+        <span class="dev-credit__label">Desenvolvido por</span>
+        <img src="assets/brand/exksvol.png" alt="Exksvol Systems" width="790" height="160" />
+      </a>
     `;
 
     // Esteira de comunicados; sem imagens disponíveis, o espaço é removido.

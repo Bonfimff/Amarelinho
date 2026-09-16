@@ -23,7 +23,6 @@ export default {
     const dirId = line.directions[0]?.id || null;
     const tab = TABS.find((t) => t.id === query.aba)?.id || 'pontos';
     const stops = line.hasShape ? await transport.getStops(line.id, dirId) : [];
-    const ret = line.returnLineId ? getLine(line.returnLineId) : null;
 
     el.innerHTML = html`
       <a class="back" href="${href('/linhas')}">${raw(icons.arrowLeft())}Linhas</a>
@@ -35,11 +34,6 @@ export default {
           <div class="line-head__badges">${raw(statusPill(line.operatingHours))}</div>
         </div>
       </header>
-
-      ${ret ? raw(html`
-        <a class="return-link" href="${href(`/linha/${ret.id}`, { aba: tab })}">
-          ${raw(icons.swap())}<span>Volta: <b>${ret.id}</b> ${ret.origin} x ${ret.destination}</span>${raw(icons.chevronRight())}
-        </a>`) : ''}
 
       ${line.hasLiveData ? raw(html`
         <section class="card live-summary" aria-labelledby="circ-title">

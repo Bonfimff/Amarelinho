@@ -76,11 +76,32 @@ button { font: inherit; color: inherit; }
 }
 .about-logo { display: inline-block; margin-top: 12px; }
 .about-logo img { display: block; height: 56px; width: auto; }
-.brand-stripe { position: fixed; top: var(--topbar-h); left: 0; right: 0; height: var(--stripe-h); z-index: 1200; display: grid; grid-template-columns: repeat(4, 1fr); }
+/* Crédito de desenvolvimento, sobre o fundo claro do cartão. */
+.dev-credit {
+  display: flex; flex-direction: column; align-items: center; gap: 7px; margin-top: 14px;
+  padding: 4px; text-decoration: none; transition: opacity .2s, transform .2s;
+}
+.dev-credit:hover, .dev-credit:focus-visible { opacity: .75; transform: translateY(-1px); }
+.dev-credit__label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.dev-credit img { display: block; height: 30px; width: auto; }
+.brand-stripe { position: fixed; top: var(--topbar-h); left: 0; right: 0; height: var(--stripe-h); z-index: 1200; display: grid; grid-template-columns: repeat(4, 1fr); overflow: hidden; }
 .brand-stripe span:nth-child(1) { background: var(--red-500); }
 .brand-stripe span:nth-child(2) { background: var(--blue-700); }
 .brand-stripe span:nth-child(3) { background: var(--green-500); }
 .brand-stripe span:nth-child(4) { background: var(--yellow-500); }
+/* Ao abrir, as quatro faixas crescem da esquerda, uma após a outra. */
+.brand-stripe span { transform-origin: left center; animation: stripe-in .45s cubic-bezier(.2, .7, .3, 1) both; }
+.brand-stripe span:nth-child(2) { animation-delay: .09s; }
+.brand-stripe span:nth-child(3) { animation-delay: .18s; }
+.brand-stripe span:nth-child(4) { animation-delay: .27s; }
+@keyframes stripe-in { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* Depois, um brilho discreto atravessa a faixa de tempos em tempos. */
+.brand-stripe::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 38%, rgba(255, 255, 255, .7) 50%, transparent 62%);
+  animation: stripe-sheen 11s ease-in-out 1.6s infinite;
+}
+@keyframes stripe-sheen { 0% { transform: translateX(-100%); } 20%, 100% { transform: translateX(100%); } }
 
 /* ---------- Mapa e painel ---------- */
 .shell { position: fixed; top: calc(var(--topbar-h) + var(--stripe-h)); left: 0; right: 0; bottom: calc(var(--bottomnav-h) + env(safe-area-inset-bottom)); }
@@ -101,7 +122,15 @@ button { font: inherit; color: inherit; }
 /* Aberto, encosta no header: sem folga nem cantos arredondados deixando o mapa aparecer atrás. */
 .sheet[data-state="full"] { border-radius: 0; }
 .sheet__handle { flex: none; height: 34px; border: 0; background: transparent; cursor: grab; touch-action: none; display: grid; place-items: center; }
-.sheet__handle span { width: 46px; height: 5px; border-radius: 99px; background: #9DB0D6; }
+.sheet__handle span { width: 46px; height: 5px; border-radius: 99px; background: #9DB0D6; transition: transform .2s, background-color .2s; }
+.sheet__handle:hover span, .sheet__handle:focus-visible span { background: var(--blue-600); transform: scaleX(1.1); }
+/* Recolhido, a alça acena para cima algumas vezes, indicando que o painel abre ali. */
+.sheet[data-state="collapsed"] .sheet__handle span { animation: handle-hint 1.9s ease-in-out .25s 3 both; }
+@keyframes handle-hint {
+  0%, 34%, 100% { transform: none; background-color: #9DB0D6; }
+  12% { transform: translateY(-5px) scaleX(1.14); background-color: var(--blue-600); }
+  23% { transform: translateY(-1px) scaleX(1.05); background-color: var(--blue-600); }
+}
 .sheet[data-state="collapsed"] .sheet__content { visibility: hidden; }
 .sheet[data-locked] .sheet__content { padding-top: 14px; }
 .sheet__content { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 2px 16px 24px; outline: none; }
@@ -250,10 +279,6 @@ button { font: inherit; color: inherit; }
 .line-head__x { color: var(--yellow-600); }
 .line-head__meta { color: var(--ink-3); font-size: 13px; margin-top: 3px; font-weight: 500; }
 .line-head__badges { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
-.return-link { display: flex; align-items: center; gap: 10px; background: var(--white); border-radius: 10px; padding: 11px 12px; text-decoration: none; color: var(--ink-2); box-shadow: var(--shadow); font-weight: 500; font-size: 14px; }
-.return-link b { color: var(--blue-700); }
-.return-link > .icon:first-child { color: var(--blue-600); }
-.return-link > span { flex: 1; min-width: 0; }
 .live-summary__grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 8px; margin-bottom: 10px; }
 .kpi { background: var(--blue-50); border-radius: 10px; padding: 9px 12px; }
 .kpi__value { display: block; font-size: 22px; font-weight: 800; color: var(--blue-700); }
