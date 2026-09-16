@@ -87,9 +87,8 @@ export default {
     });
 
     const tz01 = lines.find((l) => l.id === 'TZ01');
-    const shape = await transport.getShape('TZ01', demo.directionId);
-    const stops = await transport.getStops('TZ01', demo.directionId);
-    map.showLine({ lineId: 'TZ01', directionId: demo.directionId, points: shape.points, stops });
+    // A tela inicial mostra o município, não um itinerário: sem traçado nem pontos no mapa.
+    map.showOverview();
     map.showDistricts(true); // divisão distrital de Magé, exclusiva desta tela e do computador
 
     let running = null; // ônibus mostrado no cartão, para o interruptor de acompanhamento

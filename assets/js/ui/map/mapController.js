@@ -18,6 +18,7 @@ const MAGE_BOUNDS = [[-22.56, -43.21], [-22.71, -43.01]];
 export class MapController {
   #map;
   #districtLayer;
+  #districtLegend = null;
   #districtsOn = false;
   #routeLayer;
   #stopLayer;
@@ -335,8 +336,9 @@ export class MapController {
   }
 
   /**
-   * Divisão distrital de Magé, só no computador: contorno claro por cima do mapa, sem tampar
-   * ruas nem rótulos. No celular não cabe, então o pedido fica guardado e volta se a tela crescer.
+   * Divisão distrital de Magé, só no computador: cada distrito com a sua cor, transparente o
+   * bastante para as ruas continuarem visíveis, e contorno tracejado. Acompanha uma legenda
+   * numerada. No celular não cabe, então o pedido fica guardado e volta se a tela crescer.
    */
   showDistricts(on) {
     this.#districtsOn = Boolean(on);
@@ -345,20 +347,41 @@ export class MapController {
 
   #renderDistricts() {
     const mostrar = this.#districtsOn && window.matchMedia('(min-width: 1024px)').matches;
-    if (!mostrar) { this.#districtLayer.clearLayers(); return; }
+    if (!mostrar) {
+      this.#districtLayer.clearLayers();
+      this.#districtLegend?.remove();
+      this.#districtLegend = null;
+      return;
+    }
     if (this.#districtLayer.getLayers().length) return;
     MAGE_DISTRICTS.forEach((d) => {
       d.aneis.forEach((anel) => {
         L.polygon(anel, {
-          color: '#1A3F99', weight: 1.5, opacity: .45, dashArray: '6 5',
-          fillColor: '#2152C4', fillOpacity: .05, interactive: false
+          color: d.cor, weight: 2, opacity: .85, dashArray: '7 5', lineJoin: 'round',
+          fillColor: d.cor, fillOpacity: .14, interactive: false
         }).addTo(this.#districtLayer);
       });
       L.marker(d.rotulo, {
         interactive: false, keyboard: false,
-        icon: L.divIcon({ className: '', html: `<span class="district-label">${esc(d.nome)}</span>`, iconSize: [0, 0] })
+        icon: L.divIcon({
+          className: '',
+          html: `<span class="district-label" style="color:${d.cor}">${d.ordem}º · ${esc(d.nome)}</span>`,
+          iconSize: [0, 0]
+        })
       }).addTo(this.#districtLayer);
     });
+    this.#renderDistrictLegend();
+  }
+
+  #renderDistrictLegend() {
+    if (this.#districtLegend) return;
+    const el = document.createElement('div');
+    el.className = 'district-legend';
+    el.innerHTML = `<p class="district-legend__title">Distritos de Magé</p><ul>${MAGE_DISTRICTS.map((d) => `
+      <li><span class="district-legend__dot" style="background:${d.cor}24;border-color:${d.cor}"></span>
+        <span><strong>${d.ordem}º Distrito</strong> ${esc(d.nome)}</span></li>`).join('')}</ul>`;
+    this.#map.getContainer().parentElement.appendChild(el);
+    this.#districtLegend = el;
   }
 
   locateUser() {
