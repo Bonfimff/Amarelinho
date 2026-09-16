@@ -53,7 +53,8 @@ export class MapController {
     } else {
       L.tileLayer(APP_CONFIG.map.tiles, { attribution: APP_CONFIG.map.attribution, maxZoom: 19, className: 'base-tiles' }).addTo(this.#map);
     }
-    L.control.zoom({ position: 'topright' }).addTo(this.#map);
+    const zoom = L.control.zoom({ position: 'topright' }).addTo(this.#map);
+    this.#mountZoomLevel(zoom.getContainer());
     // Abaixo de tudo: a divisão distrital, quando a tela inicial a pede no computador.
     this.#districtLayer = L.layerGroup().addTo(this.#map);
     this.#routeLayer = L.layerGroup().addTo(this.#map);
@@ -95,6 +96,21 @@ export class MapController {
   /** Espaço ocupado pelo painel inferior no celular, para enquadrar a rota acima dele. */
   setBottomPadding(px) {
     this.#bottomPad = px;
+  }
+
+  /** Mostra o nível de zoom entre os botões + e −, para saber a que altura o mapa está. */
+  #mountZoomLevel(container) {
+    const alvo = document.createElement('span');
+    alvo.className = 'zoom-level';
+    alvo.title = 'Nível de zoom do mapa';
+    const atualiza = () => {
+      const z = this.#map.getZoom();
+      // O zoom anda de 0,25 em 0,25: mostra a fração só quando existe.
+      alvo.textContent = Number.isInteger(z) ? String(z) : z.toFixed(2).replace(/0$/, '').replace('.', ',');
+    };
+    container.insertBefore(alvo, container.lastElementChild);
+    this.#map.on('zoom zoomend', atualiza);
+    atualiza();
   }
 
   #fitPadding() {
