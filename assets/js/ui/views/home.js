@@ -6,7 +6,6 @@ import { formatEta, operationStatus } from '../../lib/time.js';
 import { formatDistance } from '../../lib/geo.js';
 import { BANNERS } from '../../data/official/banners.js';
 import { BannerCarousel } from '../carousel.js';
-import { bindFollowSwitch } from '../followSwitch.js';
 
 export default {
   sheetLocked: true,
@@ -91,23 +90,18 @@ export default {
     map.showOverview();
     map.showDistricts(true); // divisão distrital de Magé, exclusiva desta tela e do computador
 
-    let running = null; // ônibus mostrado no cartão, para o interruptor de acompanhamento
     const render = (snap) => {
       const v = snap.vehicles.find((x) => x.id === demo.vehicleId) || snap.vehicles.find((x) => x.lineId === 'TZ01' && x.status !== 'arrived');
       const set = (sel, txt) => { const n = el.querySelector(sel); if (n) n.textContent = txt; };
-      running = null;
       if (!v) { set('[data-home-loc]', tz01 && operationStatus(tz01.operatingHours).open ? 'Nenhum ônibus em circulação neste momento.' : 'Fora do horário de operação.'); return; }
       set('[data-home-loc]', vehicleLocationText(v));
       set('[data-home-next]', v.nextStop ? v.nextStop.name : 'Chegou ao destino');
       set('[data-home-eta]', v.nextStop ? formatEta(v.nextStop.etaSec) : '–');
       set('[data-home-dist]', v.nextStop ? formatDistance(v.nextStop.distanceM) : '–');
-      running = v;
     };
-    this.off = liveFeed.on('update', (snap) => { render(snap); map.updateVehicles(snap.vehicles, { animateMs: liveFeed.intervalMs }); });
-    const snap = await liveFeed.watch('TZ01');
-    render(snap);
-    map.updateVehicles(snap.vehicles, { animateMs: 0 });
-    bindFollowSwitch(ctx, () => running?.id);
+    // O mapa daqui é o do município; o ônibus aparece nas telas da linha e do veículo.
+    this.off = liveFeed.on('update', render);
+    render(await liveFeed.watch('TZ01'));
 
   },
 

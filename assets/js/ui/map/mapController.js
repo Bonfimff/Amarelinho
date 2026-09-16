@@ -7,13 +7,20 @@ import { BASE_STYLE } from './baseStyle.js';
 import { MAGE_DISTRICTS } from '../../data/geo/mage-districts.js';
 
 const L = window.L;
-// Limites aproximados do município de Magé (Inhomirim/Santo Aleixo ao norte, Suruí e a baía ao sul).
 const MIN_FIT_PX = 80; // altura minima de mapa preservada ao enquadrar
 // Trecho de rota (em pixels de tela) usado para definir para onde o onibus aponta.
 const COURSE_PX = 80;
 const COURSE_MIN_M = 60;
 const COURSE_MAX_M = 2000;
-const MAGE_BOUNDS = [[-22.56, -43.21], [-22.71, -43.01]];
+// Limites do município, calculados a partir da própria divisão distrital: assim o enquadramento
+// pega Magé inteira (Santo Aleixo ao norte, a baía ao sul) sem depender de uma caixa chutada.
+const MAGE_BOUNDS = (() => {
+  let n = -90; let s = 90; let o = 180; let l = -180;
+  MAGE_DISTRICTS.forEach((d) => d.aneis.forEach((anel) => anel.forEach(([lat, lng]) => {
+    n = Math.max(n, lat); s = Math.min(s, lat); o = Math.min(o, lng); l = Math.max(l, lng);
+  })));
+  return [[n, o], [s, l]];
+})();
 
 export class MapController {
   #map;
@@ -365,7 +372,7 @@ export class MapController {
         interactive: false, keyboard: false,
         icon: L.divIcon({
           className: '',
-          html: `<span class="district-label" style="color:${d.cor}">${d.ordem}º · ${esc(d.nome)}</span>`,
+          html: `<span class="district-label" style="color:${d.cor}">${d.ordem}º</span>`,
           iconSize: [0, 0]
         })
       }).addTo(this.#districtLayer);
@@ -373,12 +380,36 @@ export class MapController {
     this.#renderDistrictLegend();
   }
 
+  /** Miniatura do próprio contorno do distrito, para a legenda. */
+  #districtThumb(d, w = 26, h = 22) {
+    const pts = d.aneis[0];
+    const lats = pts.map((p) => p[0]);
+    const lngs = pts.map((p) => p[1]);
+    const [lat0, lat1] = [Math.min(...lats), Math.max(...lats)];
+    const [lng0, lng1] = [Math.min(...lngs), Math.max(...lngs)];
+    // A longitude encolhe com o cosseno da latitude; sem isso o contorno sai esticado.
+    const k = Math.cos(((lat0 + lat1) / 2 * Math.PI) / 180);
+    const larg = (lng1 - lng0) * k || 1e-6;
+    const alt = (lat1 - lat0) || 1e-6;
+    const pad = 1.6;
+    const esc1 = Math.min((w - 2 * pad) / larg, (h - 2 * pad) / alt);
+    const dx = (w - larg * esc1) / 2;
+    const dy = (h - alt * esc1) / 2;
+    // Poucos pontos bastam neste tamanho; reduz o desenho a no máximo ~70 vértices.
+    const passo = Math.max(1, Math.ceil(pts.length / 70));
+    const d3 = pts.filter((_, i) => i % passo === 0)
+      .map(([la, ln], i) => `${i ? 'L' : 'M'}${(dx + (ln - lng0) * k * esc1).toFixed(1)} ${(dy + (lat1 - la) * esc1).toFixed(1)}`)
+      .join('');
+    return `<svg class="district-legend__shape" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" aria-hidden="true">
+      <path d="${d3}Z" fill="${d.cor}" fill-opacity=".18" stroke="${d.cor}" stroke-width="1.2" stroke-dasharray="2.4 1.8" stroke-linejoin="round"/></svg>`;
+  }
+
   #renderDistrictLegend() {
     if (this.#districtLegend) return;
     const el = document.createElement('div');
     el.className = 'district-legend';
     el.innerHTML = `<p class="district-legend__title">Distritos de Magé</p><ul>${MAGE_DISTRICTS.map((d) => `
-      <li><span class="district-legend__dot" style="background:${d.cor}24;border-color:${d.cor}"></span>
+      <li>${this.#districtThumb(d)}
         <span><strong>${d.ordem}º Distrito</strong> ${esc(d.nome)}</span></li>`).join('')}</ul>`;
     this.#map.getContainer().parentElement.appendChild(el);
     this.#districtLegend = el;
