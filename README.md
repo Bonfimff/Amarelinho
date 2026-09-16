@@ -95,16 +95,37 @@ Cores e tipografia seguem a comunicação do Amarelinho e da Prefeitura de Magé
 
 ## Publicar
 
-O site no ar sai de `publico/`, uma cópia sem os comentários do código-fonte. O repositório
-continua comentado; só a versão entregue ao navegador é enxuta.
+São dois lugares diferentes, e é importante não confundir:
+
+- **O site** (`amarelinho.exksvol.com`) é servido pelo **GitHub Pages**, a partir do branch
+  `gh-pages` (ver "Versão sem comentários" abaixo). O servidor não entra nisso.
+- **A API** (`api-amarelinho.exksvol.com`) roda no servidor, em `/var/www/amarelinho`, que é um
+  clone do repositório. Publicar a API é `git pull` no servidor mais o restart do serviço.
 
 ```
-git add -A && git commit -m "..." && git push
-ssh -i CHAVE ubuntu@SERVIDOR "cd /var/www/amarelinho && git pull && node server/build.js && sudo systemctl restart amarelinho-api"
+git add -A && git commit -m "..." && git push   # guarda o codigo-fonte
+bash server/publicar-site.sh                   # publica o site (sem comentarios)
+ssh -i CHAVE ubuntu@SERVIDOR "cd /var/www/amarelinho && git pull && sudo systemctl restart amarelinho-api"
 ```
 
-`node server/build.js` monta `publico/` (que o git ignora). Arquivos de terceiros em
-`assets/vendor` são copiados sem alteração, porque as licenças exigem manter os avisos de
-direitos autorais. Se algum arquivo não passar na verificação de sintaxe depois da limpeza,
-o build publica o original e avisa no terminal.
+### Nunca copie o nginx por cima
 
+`server/deploy/nginx-amarelinho.conf` serve para a **primeira instalação**. O certbot reescreve
+esse arquivo ao configurar o HTTPS; copiar a versão do repositório por cima apaga o bloco SSL e
+derruba a API por certificado inválido. Para mudar algo depois, edite direto no servidor.
+
+### Versão sem comentários
+
+O site no ar sai do branch `gh-pages`, que contém só a build: `node server/build.js` monta
+`publico/` (ignorada pelo git) sem os comentários do código-fonte, e `bash server/publicar-site.sh`
+empurra essa pasta para o `gh-pages`. O `main` segue comentado, para trabalhar.
+
+```
+bash server/publicar-site.sh     # monta e publica o site sem comentários
+```
+
+Na primeira vez, mude em **Settings > Pages** a origem de `main` para `gh-pages` (raiz).
+O `gh-pages` é reescrito a cada publicação — é resultado de build, não fonte.
+
+Arquivos de terceiros em `assets/vendor` são copiados sem alteração, porque as licenças exigem
+manter os avisos de direitos autorais.
