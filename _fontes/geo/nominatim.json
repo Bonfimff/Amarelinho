@@ -1,0 +1,558 @@
+{
+ "Rodoviária de Piabetá, Magé": [
+  {
+   "place_id": 10343801,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 937273536,
+   "lat": "-22.6127806",
+   "lon": "-43.1790705",
+   "category": "amenity",
+   "type": "bus_station",
+   "place_rank": 30,
+   "importance": 5.364690623326493e-05,
+   "addresstype": "amenity",
+   "name": "Rodoviária de Piabetá (Linhas Municipais)",
+   "display_name": "Rodoviária de Piabetá (Linhas Municipais), Avenida Caioaba, Piabetá, Inhomirim, Magé, Rio de Janeiro, Região Sudeste, 25931-778, Brasil",
+   "boundingbox": [
+    "-22.6131526",
+    "-22.6124086",
+    "-43.1791913",
+    "-43.1789497"
+   ]
+  },
+  {
+   "place_id": 10272808,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 937273532,
+   "lat": "-22.6136173",
+   "lon": "-43.1791446",
+   "category": "amenity",
+   "type": "bus_station",
+   "place_rank": 30,
+   "importance": 5.364690623326493e-05,
+   "addresstype": "amenity",
+   "name": "Rodoviária de Piabetá (Linhas Intermunicipais)",
+   "display_name": "Rodoviária de Piabetá (Linhas Intermunicipais), Avenida Santos Dumont, Piabetá, Inhomirim, Magé, Rio de Janeiro, Região Sudeste, 25931-778, Brasil",
+   "boundingbox": [
+    "-22.6139008",
+    "-22.6133333",
+    "-43.1792606",
+    "-43.1790291"
+   ]
+  }
+ ],
+ "Terminal Rodoviário Piabetá": [
+  {
+   "place_id": 10248630,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 937273536,
+   "lat": "-22.6127806",
+   "lon": "-43.1790705",
+   "category": "amenity",
+   "type": "bus_station",
+   "place_rank": 30,
+   "importance": 5.364690623326493e-05,
+   "addresstype": "amenity",
+   "name": "Rodoviária de Piabetá (Linhas Municipais)",
+   "display_name": "Rodoviária de Piabetá (Linhas Municipais), Avenida Santos Dumont, Piabetá, Inhomirim, Magé, Rio de Janeiro, Região Sudeste, 25931-778, Brasil",
+   "boundingbox": [
+    "-22.6131526",
+    "-22.6124086",
+    "-43.1791913",
+    "-43.1789497"
+   ]
+  },
+  {
+   "place_id": 10238094,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 937273532,
+   "lat": "-22.6136173",
+   "lon": "-43.1791446",
+   "category": "amenity",
+   "type": "bus_station",
+   "place_rank": 30,
+   "importance": 5.364690623326493e-05,
+   "addresstype": "amenity",
+   "name": "Rodoviária de Piabetá (Linhas Intermunicipais)",
+   "display_name": "Rodoviária de Piabetá (Linhas Intermunicipais), Avenida Santos Dumont, Piabetá, Inhomirim, Magé, Rio de Janeiro, Região Sudeste, 25931-778, Brasil",
+   "boundingbox": [
+    "-22.6139008",
+    "-22.6133333",
+    "-43.1792606",
+    "-43.1790291"
+   ]
+  }
+ ],
+ "Fórum Piabetá Magé": [],
+ "Hospital do Olho Magé": [],
+ "Bongaba, Magé": [
+  {
+   "place_id": 424576220,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 1199324571,
+   "lat": "-22.6527146",
+   "lon": "-43.1802040",
+   "category": "building",
+   "type": "yes",
+   "place_rank": 30,
+   "importance": 5.364690623326493e-05,
+   "addresstype": "building",
+   "name": "Bongaba",
+   "display_name": "Bongaba, Viaduto de Bongaba, Inhomirim, Magé, Rio de Janeiro, Região Sudeste, 25930-000, Brasil",
+   "boundingbox": [
+    "-22.6527477",
+    "-22.6526815",
+    "-43.1802477",
+    "-43.1801603"
+   ]
+  },
+  {
+   "place_id": 10333464,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 477790506,
+   "lat": "-22.6433691",
+   "lon": "-43.1768008",
+   "category": "landuse",
+   "type": "cemetery",
+   "place_rank": 24,
+   "importance": 0.08005364690623328,
+   "addresstype": "cemetery",
+   "name": "Cemitério de Bongaba",
+   "display_name": "Cemitério de Bongaba, Inhomirim, Magé, Rio de Janeiro, Região Sudeste, Brasil",
+   "boundingbox": [
+    "-22.6444501",
+    "-22.6422301",
+    "-43.1777137",
+    "-43.1763948"
+   ]
+  }
+ ],
+ "Mauá, Magé": [
+  {
+   "place_id": 10284390,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "node",
+   "osm_id": 416657213,
+   "lat": "-22.7137640",
+   "lon": "-43.1734230",
+   "category": "place",
+   "type": "hamlet",
+   "place_rank": 20,
+   "importance": 0.13337083466849772,
+   "addresstype": "hamlet",
+   "name": "Mauá",
+   "display_name": "Mauá, Guia de Pacobaíba, Magé, Rio de Janeiro, Região Sudeste, Brasil",
+   "boundingbox": [
+    "-22.7337640",
+    "-22.6937640",
+    "-43.1934230",
+    "-43.1534230"
+   ]
+  }
+ ],
+ "Santa Dalila, Magé": [
+  {
+   "place_id": 10349028,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 91182245,
+   "lat": "-22.6583116",
+   "lon": "-43.1418117",
+   "category": "highway",
+   "type": "residential",
+   "place_rank": 26,
+   "importance": 0.05338698023956661,
+   "addresstype": "road",
+   "name": "Estrada Rio Mage",
+   "display_name": "Estrada Rio Mage, Vila Santa Dalila, Suruí, Magé, Rio de Janeiro, Região Sudeste, 25903-587, Brasil",
+   "boundingbox": [
+    "-22.6583202",
+    "-22.6556606",
+    "-43.1453961",
+    "-43.1389841"
+   ]
+  },
+  {
+   "place_id": 10339477,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 115571165,
+   "lat": "-22.6522754",
+   "lon": "-43.1550697",
+   "category": "highway",
+   "type": "residential",
+   "place_rank": 26,
+   "importance": 0.05338698023956661,
+   "addresstype": "road",
+   "name": "Estrada Rio Mage",
+   "display_name": "Estrada Rio Mage, Vila Santa Dalila, Suruí, Magé, Rio de Janeiro, Região Sudeste, 25930-000, Brasil",
+   "boundingbox": [
+    "-22.6534205",
+    "-22.6521421",
+    "-43.1574319",
+    "-43.1529818"
+   ]
+  }
+ ],
+ "Suruí, Magé": [
+  {
+   "place_id": 10309362,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "node",
+   "osm_id": 1058120139,
+   "lat": "-22.6629950",
+   "lon": "-43.1289983",
+   "category": "railway",
+   "type": "station",
+   "place_rank": 30,
+   "importance": 0.31877743112977514,
+   "addresstype": "railway",
+   "name": "Suruí",
+   "display_name": "Suruí, Estrada do Partido, Suruí, Magé, Rio de Janeiro, Região Sudeste, 25903-587, Brasil",
+   "boundingbox": [
+    "-22.6679950",
+    "-22.6579950",
+    "-43.1339983",
+    "-43.1239983"
+   ]
+  },
+  {
+   "place_id": 10259685,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "node",
+   "osm_id": 5457784074,
+   "lat": "-22.6629400",
+   "lon": "-43.1289805",
+   "category": "railway",
+   "type": "stop",
+   "place_rank": 30,
+   "importance": 0.31877743112977514,
+   "addresstype": "railway",
+   "name": "Suruí",
+   "display_name": "Suruí, Estrada do Partido, Suruí, Magé, Rio de Janeiro, Região Sudeste, 25903-587, Brasil",
+   "boundingbox": [
+    "-22.6629900",
+    "-22.6628900",
+    "-43.1290305",
+    "-43.1289305"
+   ]
+  },
+  {
+   "place_id": 10353877,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "relation",
+   "osm_id": 14548436,
+   "lat": "-22.6567166",
+   "lon": "-43.1266948",
+   "category": "boundary",
+   "type": "administrative",
+   "place_rank": 18,
+   "importance": 0.1600536469062333,
+   "addresstype": "village",
+   "name": "Suruí",
+   "display_name": "Suruí, Magé, Rio de Janeiro, Região Sudeste, Brasil",
+   "boundingbox": [
+    "-22.6964960",
+    "-22.6367135",
+    "-43.1728076",
+    "-43.0928564"
+   ]
+  },
+  {
+   "place_id": 10369042,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "node",
+   "osm_id": 338321703,
+   "lat": "-22.6605727",
+   "lon": "-43.1278204",
+   "category": "place",
+   "type": "suburb",
+   "place_rank": 19,
+   "importance": 0.14672031357289994,
+   "addresstype": "suburb",
+   "name": "Suruí",
+   "display_name": "Suruí, Magé, Rio de Janeiro, Região Sudeste, 25903-587, Brasil",
+   "boundingbox": [
+    "-22.6805727",
+    "-22.6405727",
+    "-43.1478204",
+    "-43.1078204"
+   ]
+  }
+ ],
+ "Barão de Iriri, Magé": [
+  {
+   "place_id": 10317176,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "node",
+   "osm_id": 7440115734,
+   "lat": "-22.6809908",
+   "lon": "-43.1002403",
+   "category": "place",
+   "type": "suburb",
+   "place_rank": 19,
+   "importance": 0.14672031357289994,
+   "addresstype": "suburb",
+   "name": "Barão de Iriri",
+   "display_name": "Barão de Iriri, Magé, Rio de Janeiro, Região Sudeste, 25905-565, Brasil",
+   "boundingbox": [
+    "-22.7009908",
+    "-22.6609908",
+    "-43.1202403",
+    "-43.0802403"
+   ]
+  }
+ ],
+ "Corpo de Bombeiros Magé": [
+  {
+   "place_id": 10314213,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 1004425324,
+   "lat": "-22.6573705",
+   "lon": "-43.0680577",
+   "category": "amenity",
+   "type": "animal_shelter",
+   "place_rank": 30,
+   "importance": 5.364690623326493e-05,
+   "addresstype": "amenity",
+   "name": "Canil do Corpo de Bombeiros Militar do Estado do Rio de Janeiro",
+   "display_name": "Canil do Corpo de Bombeiros Militar do Estado do Rio de Janeiro, Rodovia Magé-Manilha, Parque Boneville, Magé, Rio de Janeiro, Região Sudeste, 25900-001, Brasil",
+   "boundingbox": [
+    "-22.6574738",
+    "-22.6572673",
+    "-43.0681212",
+    "-43.0679942"
+   ]
+  }
+ ],
+ "Piedade, Magé": [
+  {
+   "place_id": 10308877,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "node",
+   "osm_id": 338172558,
+   "lat": "-22.6789428",
+   "lon": "-43.0659271",
+   "category": "place",
+   "type": "suburb",
+   "place_rank": 19,
+   "importance": 0.14672031357289994,
+   "addresstype": "suburb",
+   "name": "Piedade",
+   "display_name": "Piedade, Magé, Rio de Janeiro, Região Sudeste, 25905-565, Brasil",
+   "boundingbox": [
+    "-22.6989428",
+    "-22.6589428",
+    "-43.0859271",
+    "-43.0459271"
+   ]
+  }
+ ],
+ "Barbuda, Magé": [
+  {
+   "place_id": 10263928,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 253825812,
+   "lat": "-22.6716956",
+   "lon": "-43.0321934",
+   "category": "landuse",
+   "type": "residential",
+   "place_rank": 24,
+   "importance": 0.08005364690623328,
+   "addresstype": "residential",
+   "name": "Vila BNH - Barbuda",
+   "display_name": "Vila BNH - Barbuda, Vila Esperança, Magé, Rio de Janeiro, Região Sudeste, Brasil",
+   "boundingbox": [
+    "-22.6794434",
+    "-22.6638678",
+    "-43.0407470",
+    "-43.0278658"
+   ]
+  }
+ ],
+ "Detran Magé": [],
+ "Prefeitura Municipal de Magé": [
+  {
+   "place_id": 10411627,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 187552644,
+   "lat": "-22.6568806",
+   "lon": "-43.0385983",
+   "category": "amenity",
+   "type": "townhall",
+   "place_rank": 30,
+   "importance": 5.364690623326493e-05,
+   "addresstype": "amenity",
+   "name": "Prefeitura Municipal de Magé",
+   "display_name": "Prefeitura Municipal de Magé, Rua Nilo Peçanha, Magé, Rio de Janeiro, Região Sudeste, 25900-094, Brasil",
+   "boundingbox": [
+    "-22.6569827",
+    "-22.6567948",
+    "-43.0387018",
+    "-43.0384948"
+   ]
+  }
+ ],
+ "Rodoviária de Magé": [
+  {
+   "place_id": 10252011,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "node",
+   "osm_id": 3851408189,
+   "lat": "-22.6535959",
+   "lon": "-43.0397519",
+   "category": "amenity",
+   "type": "bus_station",
+   "place_rank": 30,
+   "importance": 5.364690623326493e-05,
+   "addresstype": "amenity",
+   "name": "Rodoviária de Magé",
+   "display_name": "Rodoviária de Magé, Rua Coronel Macieira, Magé, Rio de Janeiro, Região Sudeste, 25900-106, Brasil",
+   "boundingbox": [
+    "-22.6536459",
+    "-22.6535459",
+    "-43.0398019",
+    "-43.0397019"
+   ]
+  }
+ ],
+ "Terminal Rodoviário de Magé": [
+  {
+   "place_id": 10343801,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 937273536,
+   "lat": "-22.6127806",
+   "lon": "-43.1790705",
+   "category": "amenity",
+   "type": "bus_station",
+   "place_rank": 30,
+   "importance": 5.364690623326493e-05,
+   "addresstype": "amenity",
+   "name": "Rodoviária de Piabetá (Linhas Municipais)",
+   "display_name": "Rodoviária de Piabetá (Linhas Municipais), Avenida Caioaba, Piabetá, Inhomirim, Magé, Rio de Janeiro, Região Sudeste, 25931-778, Brasil",
+   "boundingbox": [
+    "-22.6131526",
+    "-22.6124086",
+    "-43.1791913",
+    "-43.1789497"
+   ]
+  },
+  {
+   "place_id": 10272808,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 937273532,
+   "lat": "-22.6136173",
+   "lon": "-43.1791446",
+   "category": "amenity",
+   "type": "bus_station",
+   "place_rank": 30,
+   "importance": 5.364690623326493e-05,
+   "addresstype": "amenity",
+   "name": "Rodoviária de Piabetá (Linhas Intermunicipais)",
+   "display_name": "Rodoviária de Piabetá (Linhas Intermunicipais), Avenida Santos Dumont, Piabetá, Inhomirim, Magé, Rio de Janeiro, Região Sudeste, 25931-778, Brasil",
+   "boundingbox": [
+    "-22.6139008",
+    "-22.6133333",
+    "-43.1792606",
+    "-43.1790291"
+   ]
+  },
+  {
+   "place_id": 10362061,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "node",
+   "osm_id": 3851408189,
+   "lat": "-22.6535959",
+   "lon": "-43.0397519",
+   "category": "amenity",
+   "type": "bus_station",
+   "place_rank": 30,
+   "importance": 5.364690623326493e-05,
+   "addresstype": "amenity",
+   "name": "Rodoviária de Magé",
+   "display_name": "Rodoviária de Magé, Rua Coronel Macieira, Magé, Rio de Janeiro, Região Sudeste, 25900-106, Brasil",
+   "boundingbox": [
+    "-22.6536459",
+    "-22.6535459",
+    "-43.0398019",
+    "-43.0397019"
+   ]
+  }
+ ],
+ "Praça Nilo Peçanha, Magé": [
+  {
+   "place_id": 10374082,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 187549701,
+   "lat": "-22.6568126",
+   "lon": "-43.0385436",
+   "category": "leisure",
+   "type": "park",
+   "place_rank": 24,
+   "importance": 0.08005364690623328,
+   "addresstype": "park",
+   "name": "Praça Nilo Peçanha",
+   "display_name": "Praça Nilo Peçanha, Magé, Rio de Janeiro, Região Sudeste, Brasil",
+   "boundingbox": [
+    "-22.6573228",
+    "-22.6560140",
+    "-43.0390962",
+    "-43.0379911"
+   ]
+  },
+  {
+   "place_id": 10434307,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 99363283,
+   "lat": "-22.6590320",
+   "lon": "-43.0395070",
+   "category": "highway",
+   "type": "residential",
+   "place_rank": 26,
+   "importance": 0.05338698023956661,
+   "addresstype": "road",
+   "name": "Praça Nilo Peçanha",
+   "display_name": "Praça Nilo Peçanha, Magé, Rio de Janeiro, Região Sudeste, 25900-094, Brasil",
+   "boundingbox": [
+    "-22.6599808",
+    "-22.6581537",
+    "-43.0397509",
+    "-43.0390587"
+   ]
+  },
+  {
+   "place_id": 10383947,
+   "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+   "osm_type": "way",
+   "osm_id": 239264689,
+   "lat": "-22.6571395",
+   "lon": "-43.0383041",
+   "category": "highway",
+   "type": "secondary",
+   "place_rank": 26,
+   "importance": 0.05338698023956661,
+   "addresstype": "road",
+   "name": "Praça Nilo Peçanha",
+   "display_name": "Praça Nilo Peçanha, Magé, Rio de Janeiro, Região Sudeste, 25900-094, Brasil",
+   "boundingbox": [
+    "-22.6574619",
+    "-22.6568171",
+    "-43.0385536",
+    "-43.0380547"
+   ]
+  }
+ ]
+}

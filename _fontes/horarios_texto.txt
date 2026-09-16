@@ -1,0 +1,933 @@
+
+######## HR_TZ01-PIABETA-X-MAGE.pdf
+Secretaria de Transportes 
+Av. Automóvel Clube, KM 59, 1503 – Limeira, Piabetá – Magé / RJ. 
+Tel.: (21) 2317-0216 e-mail: transporte@mage.rj.gov.br 
+ 
+ 
+TRANSPORTE PÚBLICO MUNICIPAL 
+ 
+QUADRO DE HORÁRIOS 
+LINHA: TZ01
+NOME:
+PIABETÁ x MAGÉ 
+O.S. Nº:
+ 
+ATUALIZAÇÃO:
+ 
+EM VIGOR:
+ 
+ 
+Saída da Rodoviária de Piabetá 
+05:00 
+05:45 
+06:30 
+07:15 
+08:00 
+08:45 
+09:30 
+10:15 
+11:00 
+11:45 
+12:30 
+13:15 
+13:50 
+14:35 
+15:20 
+16:05 
+16:50 
+17:35 
+18:20 
+19:05 
+19:50 
+20:35 
+21:20 
+22:05 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Saída da Rodoviária de Magé 
+05:00 
+05:45 
+06:30 
+07:15 
+08:00 
+08:45 
+09:30 
+10:15 
+11:00 
+11:45 
+12:30 
+13:15 
+13:50 
+14:35 
+15:20 
+16:05 
+16:50 
+17:35 
+18:20 
+19:05 
+19:50 
+20:35 
+21:20 
+22:05 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+######## HR_TZ02-MAUA-X-MAGE.pdf
+Secretaria de Transportes 
+Av. Automóvel Clube, KM 59, 1503 – Limeira, Piabetá – Magé / RJ. 
+Tel.: (21) 2317-0216 e-mail: transporte@mage.rj.gov.br 
+ 
+TRANSPORTE PÚBLICO MUNICIPAL 
+ 
+QUADRO DE HORÁRIOS 
+LINHA: TZ02
+NOME:
+MAUÁ x MAGÉ 
+O.S. Nº:
+ 
+ATUALIZAÇÃO:
+ 
+EM VIGOR:
+ 
+ 
+Saída de Entrada de Mauá BR493 
+05:00 
+08:00 
+11:00 
+13:50 
+16:50 
+19:50 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+PONTOS DE EMBARQUE: ENTRADA DE MAUÁ, SANTA DALILA, SURUÍ E RODOVIARIA DE MAGÉ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Saída da Rodoviária de Magé 
+06:30 
+09:30 
+12:40 
+15:20 
+18:20 
+21:20 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+######## HR_TZ03-MAUA-X-PIABETA.pdf
+Secretaria de Transportes 
+Av. Automóvel Clube, KM 59, 1503 – Limeira, Piabetá – Magé / RJ. 
+Tel.: (21) 2317-0216 e-mail: transporte@mage.rj.gov.br 
+ 
+TRANSPORTE PÚBLICO MUNICIPAL 
+ 
+QUADRO DE HORÁRIOS 
+LINHA: TZ03
+NOME:
+MAUÁ x PIABETA 
+O.S. Nº:
+ 
+ATUALIZAÇÃO:
+ 
+EM VIGOR:
+ 
+ 
+Saída de Mauá 
+05:00 
+06:40 
+08:20 
+10:10 
+12:00 
+13:50 
+15:30 
+17:10 
+19:00 
+20:40 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Saída da Rodoviária de Piabetá 
+05:50 
+07:30 
+09:20 
+11:10 
+13:00 
+14:40 
+16:20 
+18:10 
+19:50 
+21:30 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+######## HR_TZ04-MAUA-X-IPIRANGA.pdf
+Secretaria de Transportes 
+Av. Automóvel Clube, KM 59, 1503 – Limeira, Piabetá – Magé / RJ. 
+Tel.: (21) 2317-0216 e-mail: transporte@mage.rj.gov.br 
+ 
+TRANSPORTE PÚBLICO MUNICIPAL 
+ 
+QUADRO DE HORÁRIOS 
+LINHA: TZ04
+NOME:
+MAUÁ x IPIRANGA 
+O.S. Nº:
+ 
+ATUALIZAÇÃO:
+ 
+EM VIGOR:
+ 
+ 
+Saída de Mauá BR493 
+06:10 
+08:30 
+11:00 
+13:20 
+15:20 
+17:20 
+19:10 
+20:50 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Saída de Ipiranga (Cantinho da Vovó) 
+05:00 
+07:20 
+09:50 
+12:10 
+14:20 
+16:20 
+18:20 
+20:00 
+21:20 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+######## HR_TZ05-MAUA-X-SAO-FRANCISCO.pdf
+Secretaria de Transportes 
+Av. Automóvel Clube, KM 59, 1503 – Limeira, Piabetá – Magé / RJ. 
+Tel.: (21) 2317-0216 e-mail: transporte@mage.rj.gov.br 
+ 
+ 
+TRANSPORTE PÚBLICO MUNICIPAL 
+ 
+QUADRO DE HORÁRIOS 
+LINHA: TZ05
+NOME:
+MAUÁ x SÃO FRANCISCO 
+O.S. Nº:
+ 
+ATUALIZAÇÃO:
+ 
+EM VIGOR:
+ 
+ 
+Saída de BR493 Entrada de Mauá 
+04:30 
+06:10 
+08:30 
+11:00 
+13:30 
+15:50 
+18:10 
+20:20 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Saída de São Francisco 
+05:00 
+07:20 
+09:50 
+12:20 
+14:40 
+17:00 
+19:20 
+21:20 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+######## HR_TZ06-MAGE-X-ANDORINHAS.pdf
+Secretaria de Transportes 
+Av. Automóvel Clube, KM 59, 1503 – Limeira, Piabetá – Magé / RJ. 
+Tel.: (21) 2317-0216 e-mail: transporte@mage.rj.gov.br 
+ 
+ 
+TRANSPORTE PÚBLICO MUNICIPAL 
+ 
+QUADRO DE HORÁRIOS 
+LINHA: TZ06
+NOME:
+MAGÉ x ANDORINHAS 
+O.S. Nº:
+ 
+ATUALIZAÇÃO:
+ 
+EM VIGOR:
+ 
+ 
+Saída De Magé 
+06:40 
+09:00 
+11:20 
+13:30 
+16:30 
+19:30 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Saída de Andorinhas 
+05:30 
+07:50 
+10:10 
+12:30 
+15:00 
+18:00 
+21:00 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+######## HR_TZ07-PIABETA-X-ANDORINHAS-Via-CAPELA.pdf
+Secretaria de Transportes 
+Av. Automóvel Clube, KM 59, 1503 – Limeira, Piabetá – Magé / RJ. 
+Tel.: (21) 2317-0216 e-mail: transporte@mage.rj.gov.br 
+ 
+TRANSPORTE PÚBLICO MUNICIPAL 
+ 
+QUADRO DE HORÁRIOS 
+LINHA: TZ07
+NOME:
+PIABETÁ x ANDORINHAS (via CAPELA) 
+O.S. Nº:
+ 
+ATUALIZAÇÃO:
+ 
+EM VIGOR:
+ 
+ 
+Saída da Rodoviária de Piabetá 
+05:00 
+07:50 
+10:50 
+13:30 
+16:20 
+19:10 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Saída de Andorinhas 
+06:30 
+09:20 
+12:10 
+15:00 
+17:50 
+20:40 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+######## HR_TZ08-SURUI-X-RIO-DOURO-via-CONCEICAO.pdf
+Secretaria de Transportes 
+Av. Automóvel Clube, KM 59, 1503 – Limeira, Piabetá – Magé / RJ. 
+Tel.: (21) 2317-0216 e-mail: transporte@mage.rj.gov.br 
+ 
+TRANSPORTE PÚBLICO MUNICIPAL 
+ 
+QUADRO DE HORÁRIOS 
+LINHA: TZ08
+NOME:
+SURUÍ x RIO D’OURO (via CONCEIÇÃO) 
+O.S. Nº:
+ 
+ATUALIZAÇÃO:
+ 
+EM VIGOR:
+ 
+ 
+Saída da Entrada de Suruí 
+06:10 
+08:30 
+11:00 
+13:40 
+16:40 
+19:40 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Saída da Escola Municipal Celso Goulart 
+05:00 
+07:20 
+09:50 
+12:20 
+15:10 
+18:10 
+21:10 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+######## HR_TZ09-MAGE-X-PIER-DA-PIEDADE.pdf
+Secretaria de Transportes 
+Av. Automóvel Clube, KM 59, 1503 – Limeira, Piabetá – Magé / RJ. 
+Tel.: (21) 2317-0216 e-mail: transporte@mage.rj.gov.br 
+ 
+TRANSPORTE PÚBLICO MUNICIPAL 
+ 
+QUADRO DE HORÁRIOS 
+LINHA: TZ09
+NOME:
+MAGÉ X PÍER DA PIEDADE 
+O.S. Nº:
+ 
+ATUALIZAÇÃO:
+ 
+EM VIGOR:
+ 
+ 
+Saída da Rodoviária de Magé 
+05:50 
+08:20 
+11:00 
+13:30 
+15:50 
+18:10 
+20:30 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Saída do Píer da Piedade 
+06:30 
+09:10 
+11:40 
+14:10 
+16:30 
+18:50 
+21:10 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+######## HR_TZ10-MAGE-X-BARBUDA-via-SACO.pdf
+Secretaria de Transportes 
+Av. Automóvel Clube, KM 59, 1503 – Limeira, Piabetá – Magé / RJ. 
+Tel.: (21) 2317-0216 e-mail: transporte@mage.rj.gov.br 
+ 
+TRANSPORTE PÚBLICO MUNICIPAL 
+ 
+QUADRO DE HORÁRIOS 
+LINHA: TZ10
+NOME:
+MAGÉ x BARBUDA (via SACO) 
+O.S. Nº:
+ 
+ATUALIZAÇÃO:
+ 
+EM VIGOR:
+ 
+ 
+Saída da Rodoviária de Magé 
+05:00 
+07:20 
+10:00 
+12:30 
+14:50 
+17:10 
+19:30 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+######## HR_TZ11-PIABETA-X-RAIZ-DA-SERRA-via-PARQUE-CACULA.pdf
+Secretaria de Transportes 
+Av. Automóvel Clube, KM 59, 1503 – Limeira, Piabetá – Magé / RJ. 
+Tel.: (21) 2317-0216 e-mail: transporte@mage.rj.gov.br 
+ 
+TRANSPORTE PÚBLICO MUNICIPAL 
+ 
+QUADRO DE HORÁRIOS 
+LINHA:
+TZ11
+NOME:
+PIABETÁ x RAIZ DA SERRA (via PARQUE CAÇULA)
+O.S. Nº:
+ 
+ATUALIZAÇÃO:
+ 
+EM VIGOR:
+ 
+ 
+Saída da Rodoviária de Piabetá 
+05:45 
+07:15 
+08:45 
+10:20 
+11:55 
+13:30 
+14:50 
+16:15 
+17:45 
+19:15 
+20:35 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Saída do Ponto Final de Raiz da Serra 
+05:00 
+06:30 
+08:00 
+09:35 
+11:10 
+12:40 
+14:10 
+15:30 
+17:00 
+18:30 
+19:55 
+21:15 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

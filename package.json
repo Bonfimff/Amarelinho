@@ -1,0 +1,9 @@
+{
+  "name": "amarelinho-tarifa-zero-prototipo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "api": "node server/api.js"
+  },
+  "engines": { "node": ">=18" }
+}
