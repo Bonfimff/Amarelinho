@@ -7,6 +7,7 @@ import { BASE_STYLE } from './baseStyle.js';
 
 const L = window.L;
 // Limites aproximados do município de Magé (Inhomirim/Santo Aleixo ao norte, Suruí e a baía ao sul).
+const MIN_FIT_PX = 80; // altura minima de mapa preservada ao enquadrar
 const MAGE_BOUNDS = [[-22.56, -43.21], [-22.71, -43.01]];
 
 export class MapController {
@@ -77,7 +78,13 @@ export class MapController {
 
   #fitPadding() {
     const desktop = window.matchMedia('(min-width: 1024px)').matches;
-    return desktop ? { paddingTopLeft: [40, 40], paddingBottomRight: [40, 40] } : { paddingTopLeft: [24, 72], paddingBottomRight: [24, this.#bottomPad + 24] };
+    if (desktop) return { paddingTopLeft: [40, 40], paddingBottomRight: [40, 40] };
+    // O painel pode cobrir quase toda a tela; limita o recuo para sempre sobrar area util
+    // de mapa, senao o enquadramento vira (NaN, NaN) e derruba a tela.
+    const el = this.#map.getContainer();
+    const top = 72;
+    const maxBottom = Math.max(0, el.clientHeight - top - MIN_FIT_PX);
+    return { paddingTopLeft: [24, top], paddingBottomRight: [24, Math.min(this.#bottomPad + 24, maxBottom)] };
   }
 
   showOverview() {
