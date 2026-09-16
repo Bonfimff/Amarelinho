@@ -1,5 +1,5 @@
 import { html, raw } from '../../lib/text.js';
-import { icons, amarelinho } from '../icons.js';
+import { icons } from '../icons.js';
 import { href } from '../router.js';
 import { lineChip, statusPill, simBadge, stopTimeline, itineraryList, scheduleBlock, sourceNotes, vehicleLocationText } from '../components.js';
 import { formatEta, nowSec, upcomingDepartures, secToHHMM } from '../../lib/time.js';
@@ -75,7 +75,7 @@ export default {
       count.textContent = String(mine.length);
       el.querySelector('[data-vehicles]').innerHTML = mine.length ? html`${mine.map((v) => html`
         <li><a class="vehicle-row" href="${href(`/veiculo/${v.id}`, { seguir: 1 })}">
-          <span class="vehicle-row__icon">${raw(amarelinho())}</span>
+          <span class="vehicle-row__icon"><img src="IMG/img-onibus.png" alt="" width="515" height="388" /></span>
           <span class="vehicle-row__text"><strong>Saída das ${v.scheduledDeparture}</strong><span>${vehicleLocationText(v)}</span></span>
           <span class="vehicle-row__eta">${v.nextStop ? html`<strong>${formatEta(v.nextStop.etaSec)}</strong><span>${v.nextStop.name}</span>` : ''}</span>
         </a></li>`)}` : html`<li class="empty">Nenhum ônibus em circulação neste momento.</li>`;
