@@ -92,3 +92,19 @@ Com GPS real, `source` passa de `simulated` para `gps`; o `liveFeed` continua co
 ## Identidade visual
 
 Cores e tipografia seguem a comunicação do Amarelinho e da Prefeitura de Magé: azul institucional, amarelo dos ônibus, faixa com as quatro cores do coração e títulos em caixa alta no estilo dos cartazes. O logotipo oficial da Prefeitura não foi incluído; ele pode ser adicionado no cabeçalho (`index.html`, bloco `.brand`) mediante autorização.
+
+## Publicar
+
+O site no ar sai de `publico/`, uma cópia sem os comentários do código-fonte. O repositório
+continua comentado; só a versão entregue ao navegador é enxuta.
+
+```
+git add -A && git commit -m "..." && git push
+ssh -i CHAVE ubuntu@SERVIDOR "cd /var/www/amarelinho && git pull && node server/build.js && sudo systemctl restart amarelinho-api"
+```
+
+`node server/build.js` monta `publico/` (que o git ignora). Arquivos de terceiros em
+`assets/vendor` são copiados sem alteração, porque as licenças exigem manter os avisos de
+direitos autorais. Se algum arquivo não passar na verificação de sintaxe depois da limpeza,
+o build publica o original e avisa no terminal.
+
