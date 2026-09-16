@@ -1,7 +1,6 @@
 // Painel inferior arrastável (celular). No desktop vira painel lateral fixo.
 // Apenas dois estados: full (cobre a tela) e collapsed (só a alça; o mapa ocupa tudo).
 // Nada de alturas intermediárias dividindo a tela entre painel e mapa.
-const SNAPS = { collapsed: 0, full: 1 };
 const COLLAPSED_PX = 34;
 const LABELS = { collapsed: 'recolhido', full: 'expandido' };
 /** Qualquer pedido de altura parcial vira painel inteiro. */

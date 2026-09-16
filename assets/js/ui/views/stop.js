@@ -5,7 +5,6 @@ import { lineChip, arrivalsList, simBadge } from '../components.js';
 import { secToHHMM } from '../../lib/time.js';
 
 export default {
-  sheet: 'full',
   title: 'Ponto',
 
   async mount(el, ctx) {
@@ -72,7 +71,9 @@ export default {
     if (!line.hasLiveData) return;
 
     let lastFirst = null;
+    let running = []; // ônibus desta linha no último snapshot, para o interruptor de acompanhamento
     const render = async (snap) => {
+      running = snap.vehicles.filter((v) => v.lineId === line.id && v.status !== 'arrived');
       const arrivals = await transport.getArrivals({ lineId: line.id, directionId: dirId, stopId: stop.id, limit: 3 });
       const box = el.querySelector('[data-arrivals]');
       if (!box) return;
@@ -85,7 +86,7 @@ export default {
       map.updateVehicles(snap.vehicles.filter((v) => v.lineId === line.id), { animateMs: liveFeed.intervalMs });
     };
     this.off = liveFeed.on('update', render);
-    ctx.sim?.show();
+    bindFollowSwitch(ctx, () => running[0]?.id);
     render(await liveFeed.watch(line.id));
   },
 

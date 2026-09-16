@@ -3,7 +3,6 @@ import { lineCard } from '../components.js';
 import { operationStatus } from '../../lib/time.js';
 
 export default {
-  sheet: 'full',
   title: 'Linhas',
 
   mount(el, ctx) {

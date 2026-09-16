@@ -47,8 +47,10 @@ export class SimControls {
     this.#el.querySelector('[data-restart]').addEventListener('click', () => { if (this.#opts.onRestart) this.#opts.onRestart(); else clock.reset(); });
     this.#el.querySelectorAll('[data-speed]').forEach((b) => b.addEventListener('click', () => clock.setSpeed(Number(b.dataset.speed))));
     this.#el.querySelector('[data-follow]').addEventListener('change', (e) => {
+      // Sem tela responsável pelo acompanhamento, o interruptor apenas volta ao lugar:
+      // seguir um ônibus nunca troca a linha exibida no mapa.
       if (this.#opts.onFollowChange) this.#opts.onFollowChange(e.target.checked);
-      else if (e.target.checked) location.hash = '#/ao-vivo'; // fora da tela do ônibus: abre o acompanhamento
+      else e.target.checked = false;
     });
     this.#el.querySelector('[data-minimize]').addEventListener('click', () => this.setMinimized(!this.#minimized));
     clock.on('state', () => this.#render());

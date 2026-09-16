@@ -2,7 +2,6 @@ import { html, raw } from '../../lib/text.js';
 import { SOURCES } from '../../data/official/sources.js';
 
 export default {
-  sheet: 'full',
   title: 'Sobre',
 
   mount(el, ctx) {

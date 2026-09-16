@@ -54,6 +54,7 @@ async function render() {
   }
 
   current = View;
+  map.on('follow', () => {}); // cada tela registra o seu (evita sobra da tela anterior)
   map.updateVehicles([]); // cada tela decide quais veículos exibir
   sim?.hide(); // e se mostra os controles da simulação
   currentCtx = {
@@ -68,7 +69,7 @@ async function render() {
     getLine: (id) => lineCache.find((l) => l.id === id)
   };
   sheet.setLocked(Boolean(View.sheetLocked));
-  sheet.set(window.matchMedia('(min-width: 1024px)').matches ? 'full' : View.sheet || 'full');
+  sheet.set('full');
   viewEl.classList.remove('is-entering');
   void viewEl.offsetWidth;
   viewEl.classList.add('is-entering');
@@ -94,7 +95,7 @@ document.querySelector('.bottomnav')?.addEventListener('click', (e) => {
 
 async function boot() {
   viewEl.innerHTML = `<div class="boot"><div class="line-grid">${skeletonCards(6)}</div></div>`;
-  sheet.set(window.matchMedia('(min-width: 1024px)').matches ? 'full' : 'full', false);
+  sheet.set('full', false);
   lineCache = await transport.getLines();
   await Promise.all(lineCache.filter((l) => l.hasShape).flatMap((l) => l.directions.map(async (d) => {
     const shape = await transport.getShape(l.id, d.id);

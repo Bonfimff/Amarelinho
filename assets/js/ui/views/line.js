@@ -3,6 +3,7 @@ import { icons, amarelinho } from '../icons.js';
 import { href } from '../router.js';
 import { lineChip, statusPill, simBadge, stopTimeline, itineraryList, scheduleBlock, sourceNotes, vehicleLocationText } from '../components.js';
 import { formatEta, nowSec, upcomingDepartures, secToHHMM } from '../../lib/time.js';
+import { bindFollowSwitch } from '../followSwitch.js';
 
 const TABS = [
   { id: 'pontos', label: 'Pontos' },
@@ -11,7 +12,6 @@ const TABS = [
 ];
 
 export default {
-  sheet: 'full',
   title: 'Linha',
 
   async mount(el, ctx) {
@@ -72,8 +72,10 @@ export default {
     map.setFollow(null);
     if (!line.hasLiveData) return;
 
+    let running = []; // ônibus desta linha no último snapshot, para o interruptor de acompanhamento
     const render = async (snap) => {
       const mine = snap.vehicles.filter((v) => v.lineId === line.id && v.status !== 'arrived');
+      running = mine;
       const count = el.querySelector('[data-count]');
       if (!count) return;
       count.textContent = String(mine.length);
@@ -93,7 +95,7 @@ export default {
       map.updateVehicles(snap.vehicles.filter((v) => v.lineId === line.id), { animateMs: liveFeed.intervalMs });
     };
     this.off = liveFeed.on('update', render);
-    ctx.sim?.show();
+    bindFollowSwitch(ctx, () => running[0]?.id);
     render(await liveFeed.watch(line.id));
   },
 

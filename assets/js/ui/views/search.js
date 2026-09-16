@@ -40,7 +40,6 @@ async function runSearch(query, { lines, transport }) {
 }
 
 export default {
-  sheet: 'full',
   title: 'Buscar',
 
   mount(el, ctx) {

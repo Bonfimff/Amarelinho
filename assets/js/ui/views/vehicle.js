@@ -14,7 +14,6 @@ const STATUS = {
 };
 
 export default {
-  sheet: 'full',
   title: 'Ônibus',
 
   async mount(el, ctx) {
@@ -78,13 +77,14 @@ export default {
     map.clearStopHighlight();
     map.setProgressVehicle(params.vehicleId);
 
-    const follow = true; // seguir o ônibus é o padrão ao abrir a tela
+    const follow = query.seguir !== '0'; // seguir o ônibus é o padrão ao abrir a tela
     this.userUnfollowed = false;
 
-    // Início da simulação: mostra o trajeto completo por alguns segundos e depois aproxima no ônibus, em 10x.
+    // Abertura: mostra o trajeto completo por alguns segundos e depois aproxima no ônibus.
+    // A simulação fica pausada em 10x — quem inicia é a pessoa, pelo controle de simulação.
     let introDone = false;
     map.fitRoute(shape.points, { onlyRoute: true });
-    if (clock) { clock.setSpeed(10); clock.play(); }
+    clock?.setSpeed(10);
     clearTimeout(this.introTimer);
     this.introTimer = setTimeout(() => {
       introDone = true;
@@ -179,7 +179,6 @@ export default {
         if (checked) map.focusVehicle(params.vehicleId);
       },
       onRestart: () => {
-        this.userUnfollowed = false;
         // Reinicia a viagem: o ônibus volta ao ponto de partida e a simulação fica pausada (em 10x ao retomar).
         this.userUnfollowed = false;
         clock.pause();
@@ -197,7 +196,7 @@ export default {
 
     el.addEventListener('click', async (e) => {
       if (e.target.closest('[data-jump]')) {
-        clock.jumpTo(hhmmToSec(vehicle.scheduledDeparture) + vehicle.delaySec - 20);
+        clock.jumpTo(hhmmToSec(vehicle.scheduledDeparture) + (vehicle.delaySec || 0) - 20);
         clock.setSpeed(10);
         clock.play();
       }
@@ -218,6 +217,5 @@ export default {
     this.userUnfollowed = false;
     ctx?.map.setProgressVehicle(null);
     ctx?.map.setFollow(null);
-    ctx?.map.on('follow', () => {});
   }
 };

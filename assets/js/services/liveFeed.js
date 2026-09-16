@@ -19,8 +19,9 @@ export class LiveFeed extends Emitter {
 
   get intervalMs() { return this.#intervalMs; }
 
+  /** Passa a acompanhar apenas esta linha (cada tela mostra uma por vez). */
   watch(lineId) {
-    this.#lineIds.add(lineId);
+    this.#lineIds = new Set([lineId]);
     if (!this.#timer) {
       this.#timer = setInterval(() => {
         // Simulação pausada = nenhuma posição nova chega (o contador "Atualizado há…" continua correndo).
