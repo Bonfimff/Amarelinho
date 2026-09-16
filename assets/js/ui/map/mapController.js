@@ -4,6 +4,7 @@ import { courseAtDistance, pointAtDistance, sliceRoute } from '../../lib/geo.js'
 import { amarelinhoIso, isoPose, isoQuadrant, stableIsoQuadrant } from '../icons.js';
 import { esc } from '../../lib/text.js';
 import { BASE_STYLE } from './baseStyle.js';
+import { MAGE_DISTRICTS } from '../../data/geo/mage-districts.js';
 
 const L = window.L;
 // Limites aproximados do município de Magé (Inhomirim/Santo Aleixo ao norte, Suruí e a baía ao sul).
@@ -16,6 +17,8 @@ const MAGE_BOUNDS = [[-22.56, -43.21], [-22.71, -43.01]];
 
 export class MapController {
   #map;
+  #districtLayer;
+  #districtsOn = false;
   #routeLayer;
   #stopLayer;
   #vehicleLayer;
@@ -43,10 +46,15 @@ export class MapController {
       L.tileLayer(APP_CONFIG.map.tiles, { attribution: APP_CONFIG.map.attribution, maxZoom: 19, className: 'base-tiles' }).addTo(this.#map);
     }
     L.control.zoom({ position: 'topright' }).addTo(this.#map);
+    // Abaixo de tudo: a divisão distrital, quando a tela inicial a pede no computador.
+    this.#districtLayer = L.layerGroup().addTo(this.#map);
     this.#routeLayer = L.layerGroup().addTo(this.#map);
     this.#stopLayer = L.layerGroup().addTo(this.#map);
     this.#vehicleLayer = L.layerGroup().addTo(this.#map);
     this.#map.on('dragstart', () => { if (this.#followId) this.setFollow(null, { byUser: true }); });
+    // A divisão distrital depende da largura da janela: revê quando ela muda.
+    window.addEventListener('resize', () => this.#renderDistricts());
+    window.matchMedia('(min-width: 1024px)').addEventListener('change', () => this.#renderDistricts());
     // O contêiner pode nascer sem tamanho (aba em segundo plano, rotação). Enquadramentos ficam pendentes até haver área visível.
     let lastSize = '';
     new ResizeObserver(() => {
@@ -54,6 +62,7 @@ export class MapController {
       if (size === lastSize) return;
       lastSize = size;
       this.#map.invalidateSize({ pan: false });
+      this.#renderDistricts(); // a divisão distrital só cabe no computador; revê a cada mudança de tamanho
       if (this.#hasSize() && this.#pendingView) { const run = this.#pendingView; this.#pendingView = null; run(); }
     }).observe(el);
     requestAnimationFrame(() => this.#animate());
@@ -323,6 +332,33 @@ export class MapController {
 
   #applyFollowClass() {
     this.#vehicles.forEach((entry, id) => entry.marker.getElement()?.classList.toggle('is-followed', id === this.#followId));
+  }
+
+  /**
+   * Divisão distrital de Magé, só no computador: contorno claro por cima do mapa, sem tampar
+   * ruas nem rótulos. No celular não cabe, então o pedido fica guardado e volta se a tela crescer.
+   */
+  showDistricts(on) {
+    this.#districtsOn = Boolean(on);
+    this.#renderDistricts();
+  }
+
+  #renderDistricts() {
+    const mostrar = this.#districtsOn && window.matchMedia('(min-width: 1024px)').matches;
+    if (!mostrar) { this.#districtLayer.clearLayers(); return; }
+    if (this.#districtLayer.getLayers().length) return;
+    MAGE_DISTRICTS.forEach((d) => {
+      d.aneis.forEach((anel) => {
+        L.polygon(anel, {
+          color: '#1A3F99', weight: 1.5, opacity: .45, dashArray: '6 5',
+          fillColor: '#2152C4', fillOpacity: .05, interactive: false
+        }).addTo(this.#districtLayer);
+      });
+      L.marker(d.rotulo, {
+        interactive: false, keyboard: false,
+        icon: L.divIcon({ className: '', html: `<span class="district-label">${esc(d.nome)}</span>`, iconSize: [0, 0] })
+      }).addTo(this.#districtLayer);
+    });
   }
 
   locateUser() {

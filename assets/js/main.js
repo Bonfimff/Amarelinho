@@ -56,6 +56,7 @@ async function render() {
   current = View;
   map.on('follow', () => {}); // cada tela registra o seu (evita sobra da tela anterior)
   map.updateVehicles([]); // cada tela decide quais veículos exibir
+  map.showDistricts(false); // idem para a divisão distrital (só a tela inicial usa)
   sim?.hide(); // e se mostra os controles da simulação
   currentCtx = {
     ...loc,

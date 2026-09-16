@@ -90,6 +90,7 @@ export default {
     const shape = await transport.getShape('TZ01', demo.directionId);
     const stops = await transport.getStops('TZ01', demo.directionId);
     map.showLine({ lineId: 'TZ01', directionId: demo.directionId, points: shape.points, stops });
+    map.showDistricts(true); // divisão distrital de Magé, exclusiva desta tela e do computador
 
     let running = null; // ônibus mostrado no cartão, para o interruptor de acompanhamento
     const render = (snap) => {
