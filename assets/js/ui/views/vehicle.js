@@ -2,7 +2,7 @@ import { html, raw } from '../../lib/text.js';
 import { icons } from '../icons.js';
 import { href, navigate } from '../router.js';
 import { lineChip, simBadge, vehicleLocationText } from '../components.js';
-import { formatEta, formatAgo, hhmmToSec } from '../../lib/time.js';
+import { formatEta, hhmmToSec } from '../../lib/time.js';
 import { formatDistance } from '../../lib/geo.js';
 
 const STATUS = {
@@ -14,6 +14,8 @@ const STATUS = {
 };
 
 export default {
+  // No celular esta tela abre com o painel recolhido: o mapa com o ônibus vem primeiro.
+  sheet: 'collapsed',
   title: 'Ônibus',
 
   async mount(el, ctx) {
@@ -59,7 +61,8 @@ export default {
           <span class="progress__bar" data-bar></span>
         </div>
         <div class="progress__legend"><span>${dir.from}</span><span data-pct>0%</span><span>${dir.to}</span></div>
-        <p class="gps-line"><strong>Tempo real</strong><span>·</span><span class="gps-line__sim">localização simulada</span><span>·</span><span data-ago>–</span></p>
+        <p class="gps-line"><strong>Tempo real</strong><span>·</span><span class="gps-line__sim">localização simulada</span>
+          <button type="button" class="link-map" data-see-map>${raw(icons.target())}Ver no mapa</button></p>
         <div class="veh-finished" data-finished hidden></div>
       </section>
 
@@ -151,18 +154,12 @@ export default {
       }
     };
 
-    const renderAgo = () => {
-      const s = liveFeed.secondsSinceUpdate();
-      $('[data-ago]').textContent = s == null ? 'aguardando dados' : `${formatAgo(s)}${clock && !clock.playing ? ' · simulação pausada' : ''}`;
-    };
-
     const onSnapshot = async (snap) => {
       if (!el.isConnected) return;
       const inFeed = snap.vehicles.find((x) => x.id === params.vehicleId);
       renderVehicle(inFeed || (await transport.getVehicle(params.vehicleId)));
       map.updateVehicles(snap.vehicles, { animateMs: clock?.playing ? liveFeed.intervalMs : 600 });
       if (follow && introDone && inFeed && !map.followId && !this.userUnfollowed) { map.setFollow(inFeed.id); map.focusVehicle(inFeed.id); }
-      renderAgo();
     };
 
     map.on('follow', ({ id, byUser }) => {
@@ -191,10 +188,17 @@ export default {
     });
 
     this.off = liveFeed.on('update', onSnapshot);
-    this.timer = setInterval(renderAgo, 1000);
     await onSnapshot(await liveFeed.watch(line.id));
 
     el.addEventListener('click', async (e) => {
+      if (e.target.closest('[data-see-map]')) {
+        // No celular o painel cobre o mapa: recolhe e centraliza no ônibus.
+        if (!window.matchMedia('(min-width: 1024px)').matches) ctx.sheet?.set('collapsed');
+        this.userUnfollowed = false;
+        map.setFollow(params.vehicleId);
+        map.focusVehicle(params.vehicleId);
+        sim?.setFollow(true);
+      }
       if (e.target.closest('[data-jump]')) {
         clock.jumpTo(hhmmToSec(vehicle.scheduledDeparture) + (vehicle.delaySec || 0) - 20);
         clock.setSpeed(10);
@@ -212,7 +216,6 @@ export default {
 
   unmount(ctx) {
     this.off?.();
-    clearInterval(this.timer);
     clearTimeout(this.introTimer);
     this.userUnfollowed = false;
     ctx?.map.setProgressVehicle(null);

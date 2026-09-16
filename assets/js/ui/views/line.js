@@ -46,6 +46,7 @@ export default {
             <div class="kpi"><span class="kpi__value" data-next-eta>–</span><span class="kpi__label" data-next-label>próxima saída</span></div>
           </div>
           <ul class="vehicle-list" data-vehicles></ul>
+          <button class="btn btn--secondary btn--block" type="button" data-see-map>${raw(icons.target())}Ver no mapa</button>
           <p class="clock-line">${raw(icons.clock())}Horário da simulação: <strong data-clock>–</strong></p>
         </section>`) : raw(html`
         <div class="note" role="note">${raw(icons.info())}<p>${line.hasShape
@@ -88,6 +89,12 @@ export default {
       if (clock) clock.textContent = `${secToHHMM(snap.clockSec)}${transport.clock?.playing ? '' : ' (pausada)'}`;
       map.updateVehicles(snap.vehicles.filter((v) => v.lineId === line.id), { animateMs: liveFeed.intervalMs });
     };
+    // "Ver no mapa": no celular o painel cobre o mapa, então recolhe e reenquadra o trajeto.
+    el.querySelector('[data-see-map]')?.addEventListener('click', () => {
+      if (!window.matchMedia('(min-width: 1024px)').matches) ctx.sheet?.set('collapsed');
+      map.fitRoute(shape.points, { onlyRoute: true });
+    });
+
     this.off = liveFeed.on('update', render);
     bindFollowSwitch(ctx, () => running[0]?.id);
     render(await liveFeed.watch(line.id));

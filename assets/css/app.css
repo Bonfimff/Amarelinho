@@ -95,13 +95,14 @@ button { font: inherit; color: inherit; }
 .brand-stripe span:nth-child(3) { animation-delay: .18s; }
 .brand-stripe span:nth-child(4) { animation-delay: .27s; }
 @keyframes stripe-in { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-/* Depois, um brilho discreto atravessa a faixa de tempos em tempos. */
+/* Depois, um brilho atravessa a faixa de tempos em tempos: some nos intervalos, para não virar pisca-pisca. */
 .brand-stripe::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(100deg, transparent 38%, rgba(255, 255, 255, .7) 50%, transparent 62%);
-  animation: stripe-sheen 11s ease-in-out 1.6s infinite;
+  background: linear-gradient(100deg,
+    transparent 22%, rgba(255, 255, 255, .55) 38%, rgba(255, 255, 255, .98) 50%, rgba(255, 255, 255, .55) 62%, transparent 78%);
+  animation: stripe-sheen 7s ease-in-out 1.2s infinite;
 }
-@keyframes stripe-sheen { 0% { transform: translateX(-100%); } 20%, 100% { transform: translateX(100%); } }
+@keyframes stripe-sheen { 0% { transform: translateX(-110%); } 30%, 100% { transform: translateX(110%); } }
 
 /* ---------- Mapa e painel ---------- */
 .shell { position: fixed; top: calc(var(--topbar-h) + var(--stripe-h)); left: 0; right: 0; bottom: calc(var(--bottomnav-h) + env(safe-area-inset-bottom)); }
@@ -386,6 +387,13 @@ a.arrivals__item:hover { border-color: var(--blue-600); }
 .gps-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 12.5px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); color: var(--ink-3); }
 .gps-line strong { color: var(--green-600); }
 .gps-line__sim { color: var(--blue-700); font-weight: 700; }
+.link-map {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 5px; border: 0; background: none;
+  padding: 2px 0; font: 700 12.5px var(--font); color: var(--blue-600); cursor: pointer; text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.link-map .icon { width: 15px; height: 15px; }
+.link-map:hover, .link-map:focus-visible { color: var(--blue-700); }
 .veh-finished { margin-top: 12px; padding: 12px; border-radius: 10px; background: var(--blue-50); display: grid; gap: 10px; }
 .veh-finished p { display: flex; gap: 8px; align-items: center; font-weight: 700; }
 .switch { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-weight: 600; font-size: 14px; cursor: pointer; min-height: 44px; }
@@ -602,6 +610,8 @@ a.arrivals__item:hover { border-color: var(--blue-600); }
   .shell { bottom: 0; display: grid; grid-template-columns: minmax(0, 68fr) minmax(380px, 32fr); grid-template-rows: minmax(0, 1fr); }
   .map-pane { position: relative; inset: auto; min-height: 0; }
   .sheet { position: relative; height: 100%; min-height: 0; border-radius: 0; box-shadow: none; border-left: 1px solid var(--line); transform: none !important; transition: none; }
+  /* Painel lateral: o estado recolhido do celular não vale aqui. */
+  .sheet[data-state="collapsed"] .sheet__content { visibility: visible; }
   .sheet__handle { display: none; }
   .sheet__content { padding: 16px 18px 24px; }
   .back { margin: 0 -18px; padding: 10px 18px; top: -16px; }

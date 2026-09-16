@@ -70,7 +70,8 @@ async function render() {
     getLine: (id) => lineCache.find((l) => l.id === id)
   };
   sheet.setLocked(Boolean(View.sheetLocked));
-  sheet.set('full');
+  // No desktop o painel é lateral e fica sempre aberto; no celular a tela escolhe como começa.
+  sheet.set(window.matchMedia('(min-width: 1024px)').matches ? 'full' : View.sheet || 'full');
   viewEl.classList.remove('is-entering');
   void viewEl.offsetWidth;
   viewEl.classList.add('is-entering');
