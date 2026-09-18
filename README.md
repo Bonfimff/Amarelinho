@@ -108,6 +108,29 @@ bash server/publicar-site.sh                   # publica o site (sem comentarios
 ssh -i CHAVE ubuntu@SERVIDOR "cd /var/www/amarelinho && git pull && sudo systemctl restart amarelinho-api"
 ```
 
+### Uma API, duas cidades
+
+O mesmo processo (`amarelinho-api`, `server/api.js`) atende também o protótipo de Duque de Caxias,
+de forma independente: cada cidade tem os próprios dados, a própria simulação e a própria pasta
+de auditoria. Se os dados de uma cidade faltarem, só ela responde 503.
+
+| Cidade | Endereço | Dados | Auditoria |
+|---|---|---|---|
+| Magé | `/api/v1/...` (o app no ar não muda) e `/api/v1/mage/...` | `/var/www/amarelinho` | `/var/lib/amarelinho/eventos`, token `AUDIT_TOKEN` |
+| Duque de Caxias | `/api/v1/caxias/...` | `/var/www/tarifa-zero-duque-de-caxias` (`CAXIAS_DIR`) | `/var/lib/tarifa-zero-duque-de-caxias/eventos`, token `AUDIT_TOKEN_CAXIAS` |
+
+`GET /api/v1/cidades` lista as cidades e se os dados de cada uma carregaram.
+
+O `git pull` não atualiza o serviço do systemd. Na primeira publicação desta versão, instale o
+arquivo novo do serviço (ele traz as variáveis de Caxias) antes do restart:
+
+```
+ssh -i CHAVE ubuntu@SERVIDOR "cd /var/www/amarelinho && git pull && sudo cp server/deploy/amarelinho-api.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl restart amarelinho-api && curl -s http://127.0.0.1:5180/api/v1/cidades"
+```
+
+Os dados de Caxias são publicados pelo projeto dela (`tarifa-zero-duque-de-caxias/server/deploy/deploy.sh`),
+que troca a pasta `/var/www/tarifa-zero-duque-de-caxias` e reinicia esta mesma API.
+
 ### Nunca copie o nginx por cima
 
 `server/deploy/nginx-amarelinho.conf` serve para a **primeira instalação**. O certbot reescreve
