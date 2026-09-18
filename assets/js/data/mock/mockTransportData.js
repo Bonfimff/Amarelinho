@@ -1,5 +1,5 @@
 // =====================================================================================
-// mockTransportData — camada de dados SIMULADOS.
+// mockTransportData: camada de dados SIMULADOS.
 // Toda a lógica de simulação vive aqui. A interface nunca calcula posição ou previsão:
 // ela consome apenas os formatos devolvidos por este provedor, que são os mesmos que um
 // futuro provedor HTTP (fonte oficial/autorizada) devolverá. Ver services/transportService.js.

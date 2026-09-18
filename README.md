@@ -119,7 +119,7 @@ bash server/publicar-site.sh     # monta e publica o site sem comentários
 ```
 
 Na primeira vez, mude em **Settings > Pages** a origem de `main` para `gh-pages` (raiz).
-O `gh-pages` é reescrito a cada publicação — é resultado de build, não fonte.
+O `gh-pages` é reescrito a cada publicação, pois é resultado de build, não fonte.
 
 Arquivos de terceiros em `assets/vendor` são copiados sem alteração, porque as licenças exigem
 manter os avisos de direitos autorais.

@@ -41,7 +41,7 @@ export class LiveFeed extends Emitter {
 
   /**
    * Agenda a próxima consulta. Reagendar a cada snapshot mantém o espaçamento regular mesmo depois
-   * de uma consulta fora de hora — é esse espaçamento que a animação usa para cobrir o trecho.
+   * de uma consulta fora de hora. É esse espaçamento que a animação usa para cobrir o trecho.
    */
   #schedule() {
     clearTimeout(this.#timer);

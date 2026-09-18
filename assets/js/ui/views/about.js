@@ -93,9 +93,9 @@ export default {
         <h2 class="card-title">Fontes das informações</h2>
         <p>As informações utilizadas na construção da demonstração são baseadas principalmente em publicações públicas da Prefeitura Municipal de Magé.</p>
         <ul class="sources">
-          <li>${raw(link(SOURCES.amarelinhoPage, 'Prefeitura Municipal de Magé — Amarelinho – Tarifa Zero'))}<small>Página oficial com informações sobre as linhas, origens, destinos, horários e detalhamento disponível para o programa.</small></li>
-          <li>${raw(link(SOURCES.stopsPoster, 'Boletim Informativo Oficial — Pontos da Linha TZ01'))}<small>Publicação oficial com os pontos de parada da TZ01 e informações relacionadas às linhas TZ02, TZ05 e TZ06.</small></li>
-          <li><span>Boletins Informativos Oficiais — Itinerários</span><span class="muted">Prefeitura Municipal de Magé</span><small>Também foram consideradas publicações oficiais que apresentam informações detalhadas de itinerários e características de determinadas linhas, incluindo informações das linhas TZ13 e TZ14.</small></li>
+          <li>${raw(link(SOURCES.amarelinhoPage, 'Prefeitura Municipal de Magé: Amarelinho, Tarifa Zero'))}<small>Página oficial com informações sobre as linhas, origens, destinos, horários e detalhamento disponível para o programa.</small></li>
+          <li>${raw(link(SOURCES.stopsPoster, 'Boletim Informativo Oficial: Pontos da Linha TZ01'))}<small>Publicação oficial com os pontos de parada da TZ01 e informações relacionadas às linhas TZ02, TZ05 e TZ06.</small></li>
+          <li><span>Boletins Informativos Oficiais: Itinerários</span><span class="muted">Prefeitura Municipal de Magé</span><small>Também foram consideradas publicações oficiais que apresentam informações detalhadas de itinerários e características de determinadas linhas, incluindo informações das linhas TZ13 e TZ14.</small></li>
           <li>${raw(link(SOURCES.openStreetMap))}<small>Base cartográfica utilizada para a representação visual do mapa e da malha viária.</small></li>
         </ul>
       </section>

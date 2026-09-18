@@ -84,7 +84,7 @@ export default {
     this.userUnfollowed = false;
 
     // Abertura: mostra o trajeto completo por alguns segundos e depois aproxima no ônibus.
-    // A simulação fica pausada em 10x — quem inicia é a pessoa, pelo controle de simulação.
+    // A simulação fica pausada em 10x; quem inicia é a pessoa, pelo controle de simulação.
     let introDone = false;
     map.fitRoute(shape.points, { onlyRoute: true });
     clock?.setSpeed(10);

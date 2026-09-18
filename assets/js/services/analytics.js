@@ -161,7 +161,7 @@ export class Analytics {
   /**
    * Envia a fila. Usa sendBeacon quando a página está saindo, que sobrevive ao fechamento.
    * Se o envio falhar (rede fora, API indisponível), os eventos voltam para a fila e seguem na
-   * próxima tentativa — sem isso, um lote perdido levava junto o início da sessão.
+   * próxima tentativa. Sem isso, um lote perdido levava junto o início da sessão.
    */
   envia() {
     if (!this.#ligado || !this.#fila.length) return;
