@@ -12,10 +12,11 @@ import stop from './ui/views/stop.js';
 import vehicle from './ui/views/vehicle.js';
 import live from './ui/views/live.js';
 import search from './ui/views/search.js';
+import moto from './ui/views/moto.js';
 import about from './ui/views/about.js';
 
-const VIEWS = { home, lines, line, stop, vehicle, live, search, about };
-const NAV_OF_VIEW = { home: 'home', lines: 'lines', line: 'lines', stop: 'lines', vehicle: 'live', live: 'live', search: 'search', about: 'about' };
+const VIEWS = { home, lines, line, stop, vehicle, live, search, moto, about };
+const NAV_OF_VIEW = { home: 'home', lines: 'lines', line: 'lines', stop: 'lines', vehicle: 'live', live: 'live', search: 'search', moto: 'moto', about: 'about' };
 
 const viewEl = document.getElementById('view');
 const sheetEl = document.getElementById('sheet');
