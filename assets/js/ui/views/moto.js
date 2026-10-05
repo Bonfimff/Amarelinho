@@ -25,7 +25,7 @@ function hub(el, scope) {
     </header>
     <div class="note note--warn" role="note">${raw(icons.info())}<div>
       <strong>Tudo aqui é fictício.</strong>
-      <p>Profissionais, passageiros, valores e regras são exemplos. A Prefeitura ainda não definiu como o serviço funcionará em Magé. As motos andam sobre o traçado da linha TZ01 (Piabetá a Magé), a única com via calculada neste protótipo.</p>
+      <p>Profissionais, passageiros, valores e regras são exemplos e não representam o serviço, as regras nem os profissionais de nenhum município. As motos andam sobre o traçado da linha TZ01 (Piabetá a Magé), a única com via calculada neste protótipo.</p>
     </div></div>
     <ul class="roles">${ROLES.map((r) => html`
       <li><a class="role-card" href="${href(`/mototaxi/${r.key}`)}">
