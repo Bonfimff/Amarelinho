@@ -168,5 +168,11 @@ export const icons = {
   check: (c) => svg('<path d="m5 12.5 4.5 4.5L19 7"/>', c),
   calendar: (c) => svg('<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/>', c),
   shield: (c) => svg('<path d="M12 3 4.5 6v5.5c0 4.5 3.2 8.2 7.5 9.5 4.3-1.3 7.5-5 7.5-9.5V6Z"/><path d="m9 12 2.2 2.2L15.5 10"/>', c),
+
+  moto: (c) => svg('<circle cx="5.5" cy="16" r="3.1"/><circle cx="18.5" cy="16" r="3.1"/><path d="M5.5 16 9.2 9.8h5.6l3.7 6.2"/><path d="M7.4 9.8h4.6M14.8 9.8l-1.2-3.3h2.9M16.5 6.5l1.4 1.2"/>', c),
+  user: (c) => svg('<circle cx="12" cy="8" r="3.6"/><path d="M4.8 20c.6-3.7 3.3-5.8 7.2-5.8s6.6 2.1 7.2 5.8"/>', c),
+  star: (c) => svg('<path d="m12 3.6 2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9-4.3-4.1 5.9-.8Z"/>', c),
+  list: (c) => svg('<path d="M9 6.5h11M9 12h11M9 17.5h11"/><circle cx="4.7" cy="6.5" r=".9"/><circle cx="4.7" cy="12" r=".9"/><circle cx="4.7" cy="17.5" r=".9"/>', c),
+  download: (c) => svg('<path d="M12 4v11M7 11l5 5 5-5M5 20h14"/>', c),
   close: (c) => svg('<path d="M6 6l12 12M18 6 6 18"/>', c)
 };

@@ -89,6 +89,13 @@ export default {
         <p class="fine">Essas funcionalidades representam possibilidades da solução e não significam que os dados estejam atualmente disponíveis ao protótipo.</p>
       </section>
 
+      <section class="card prose">
+        <h2 class="card-title">Mototáxi (demonstração)</h2>
+        <p>A área de mototáxi mostra como um serviço de transporte sob demanda poderia funcionar dentro da plataforma, com a visão do passageiro, do mototaxista e da Secretaria.</p>
+        <p><strong>Tudo nela é fictício:</strong> profissionais, passageiros, pedidos, valores, tabela de preços, regras e pontos. Não representa o serviço, as regras nem os profissionais reais do município.</p>
+        <p>As motos andam sobre o traçado da linha TZ01, a única cuja via foi calculada neste protótipo.</p>
+      </section>
+
       <section class="card prose" id="fontes">
         <h2 class="card-title">Fontes das informações</h2>
         <p>As informações utilizadas na construção da demonstração são baseadas principalmente em publicações públicas da Prefeitura Municipal de Magé.</p>

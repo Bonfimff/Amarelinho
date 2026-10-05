@@ -42,6 +42,15 @@ export default {
         </div>
       </section>`) : ''}
 
+      <section class="card" aria-labelledby="moto-title">
+        <div class="card-head">
+          <h2 id="moto-title" class="card-title">${raw(icons.moto())}Mototáxi</h2>
+          ${raw(simBadge('Demonstração'))}
+        </div>
+        <p class="muted">Veja como o mototáxi poderia funcionar na plataforma: pedido de corrida, visão do mototaxista e painel de gestão. Tudo simulado.</p>
+        <div class="live-card__actions"><a class="btn btn--secondary" href="${href('/mototaxi')}">Abrir a demonstração</a></div>
+      </section>
+
       ${raw(demoNotice())}
       <p class="foot-links"><a href="${href('/sobre')}">Sobre o projeto</a> · <a href="${href('/sobre')}">Fontes das informações</a></p>
       <a class="dev-credit" href="https://www.exksvol.com" target="_blank" rel="noopener" aria-label="Exksvol, desenvolvedora do protótipo (abre em nova aba)">

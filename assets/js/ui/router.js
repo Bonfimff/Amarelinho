@@ -5,6 +5,7 @@ const ROUTES = [
   { pattern: /^\/linha\/([A-Z0-9]+)\/?$/i, view: 'line', keys: ['lineId'] },
   { pattern: /^\/linha\/([A-Z0-9]+)\/ponto\/([a-z0-9-]+)\/?$/i, view: 'stop', keys: ['lineId', 'stopId'] },
   { pattern: /^\/veiculo\/([A-Za-z0-9-]+)\/?$/, view: 'vehicle', keys: ['vehicleId'] },
+  { pattern: /^\/mototaxi(?:\/(passageiro|mototaxista|secretaria))?\/?$/, view: 'moto', keys: ['papel'] },
   { pattern: /^\/buscar\/?$/, view: 'search' },
   { pattern: /^\/sobre\/?$/, view: 'about' }
 ];
@@ -17,7 +18,7 @@ export function parseLocation(hash = location.hash) {
     const m = path.match(route.pattern);
     if (m) {
       const params = {};
-      (route.keys || []).forEach((k, i) => { params[k] = decodeURIComponent(m[i + 1]); });
+      (route.keys || []).forEach((k, i) => { if (m[i + 1] != null) params[k] = decodeURIComponent(m[i + 1]); });
       if (params.lineId) params.lineId = params.lineId.toUpperCase();
       return { view: route.view, params, query, path };
     }
