@@ -61,6 +61,7 @@ const ACOES = [
   ['[role="tab"]', 'aba_da_linha', (el) => ({ aba: el.textContent.trim() })],
   ['.chip', 'sugestao_de_busca', (el) => ({ termo: el.textContent.trim() })],
   ['#locate', 'minha_localizacao'],
+  ['[data-act]', 'mototaxi_acao', (el) => ({ acao: el.dataset.act })],
   ['.dev-credit, .about-logo, a[target="_blank"]', 'link_externo', (el) => ({ destino: el.getAttribute('href') })]
 ];
 

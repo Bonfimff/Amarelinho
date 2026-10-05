@@ -29,7 +29,7 @@ Não abra o `index.html` direto do disco: módulos JavaScript exigem um servidor
 |---|---|---|
 | **Oficial** | Linhas TZ01 a TZ14, nomes, origem/destino, funcionamento, quadros de horários, itinerários e pontos publicados | `assets/js/data/official/` |
 | **Aproximado** | Traçado viário da TZ01 e posição dos pontos no mapa (OpenStreetMap + OSRM) | `assets/js/data/geo/tz01-route.js` (gerado por `_fontes/geo/build_tz01.py`) |
-| **Simulado** | Posição dos ônibus, velocidade, atrasos, previsão dinâmica, atualização de GPS, veículos em circulação | `assets/js/data/mock/` |
+| **Simulado** | Posição dos ônibus, velocidade, atrasos, previsão dinâmica, atualização de GPS, veículos em circulação, e toda a área de mototáxi | `assets/js/data/mock/` |
 
 Os veículos simulados seguem **os horários de saída do quadro oficial** da TZ01. As previsões de viagens que ainda não partiram usam o horário programado mais o tempo médio estimado de percurso.
 
@@ -83,6 +83,33 @@ Troque `dataProvider: 'http'` em `config.js` e implemente uma API com os mesmos 
 | `GET /arrivals?lineId=&directionId=&stopId=` | Próximas chegadas (`type: realtime | scheduled`) |
 
 Com GPS real, `source` passa de `simulated` para `gps`; o `liveFeed` continua consultando `/vehicles` no intervalo configurado e o mapa suaviza o deslocamento entre leituras.
+
+## Mototáxi (demonstração)
+
+Área simulada de mototáxi, em `#/mototaxi`, com três visões sobre o mesmo mundo fictício:
+
+| Visão | Rota | O que mostra |
+|---|---|---|
+| Passageiro | `#/mototaxi/passageiro` | Cadastro rápido (código fixo 123456), embarque e destino (lista ou toque no mapa), valor pela tabela, pedido aberto ou a um profissional, acompanhamento, cancelamento, avaliação, histórico e ocorrências. |
+| Mototaxista | `#/mototaxi/mototaxista` | Cadastro com documentos e envio para análise, disponibilidade, pedidos com tempo para aceitar, corrida (iniciar e finalizar), desistência, histórico e valores pela tabela. |
+| Secretaria | `#/mototaxi/secretaria` | Visão geral, aprovação, pendência, suspensão e cancelamento de cadastros, corridas, ocorrências, tabela e regras de despacho, relatórios (com CSV) e auditoria. |
+
+Tudo é fictício e roda no navegador, sem API: profissionais, pedidos, valores, regras e pontos. As motos andam só sobre o traçado da TZ01, a única linha com via calculada. A simulação começa sozinha (5x); o cartão sobre o mapa controla velocidade, pausa e pedidos de outros passageiros. Na tela de entrada, "Reiniciar sem o cadastro do mototaxista" permite passar pelo credenciamento completo.
+
+```
+assets/js/
+  data/mock/mototaxi/
+    corridor.js    corredor da TZ01, pontos de embarque e projeção de coordenadas
+    seed.js        profissionais, documentos e regras iniciais (fictícios)
+    world.js       mecanismo: relógio, pedidos, ofertas, corridas, cadastro, ocorrências, auditoria
+  ui/views/moto.js entrada da área e ligação com o roteador
+  ui/moto/         passenger.js, driver.js, admin.js, motoMap.js (camadas do mapa), common.js
+assets/css/moto.css
+```
+
+O despacho segue a lógica dos aplicativos de transporte: o pedido é oferecido a um profissional por vez, do que chega mais rápido ao mais distante, com tempo para aceitar (15 s por padrão). Quem recusa ou não responde sai da vez e a oferta passa ao próximo; se a fila acabar, a busca é ampliada uma vez. O passageiro vê um código de embarque que o mototaxista precisa informar para iniciar a corrida, e os dois se avaliam no fim. O painel mostra taxa de aceite e desistências por profissional.
+
+O mecanismo (`world.js`) não toca no DOM. Duas contagens de tempo: o horário simulado, que anda com a velocidade escolhida e move as motos, e o tempo de decisão, em segundos reais, que não muda com 5x ou 10x (assim dá tempo de aceitar um pedido).
 
 ## Limitações conhecidas
 - TZ01 e TZ02 têm ônibus simulados no mapa. TZ05 e TZ06 mostram rota e pontos, sem ônibus (os quadros de horários publicados para essas linhas não correspondem a esses itinerários). As demais linhas mostram informações publicadas e horários.
