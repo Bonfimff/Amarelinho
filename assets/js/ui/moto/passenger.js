@@ -173,7 +173,9 @@ export function mountPassenger(el, scope) {
   const planner = () => {
     const ready = originReady();
     const q = ready ? w.quote(ui.origin, ui.dest) : { valid: false };
-    const near = ready ? w.eligibleDrivers(ui.origin, w.rules.despacho.raioInicialM).slice(0, 4) : [];
+
+    const near = ready ? w.eligibleDrivers(ui.origin, w.rules.despacho.raioInicialM) : [];
+    const soonest = near.length ? Math.min(...near.slice(0, 5).map((d) => w.etaTo(d, ui.origin))) : null;
     return html`
       <section class="card">
         <h2 class="card-title">${raw(icons.pin())}Para onde você vai?</h2>
@@ -204,10 +206,9 @@ export function mountPassenger(el, scope) {
 
       ${ready ? raw(html`
       <section class="card">
-        <h2 class="card-title">${raw(icons.moto())}Mototaxistas disponíveis perto de você</h2>
-        ${near.length ? raw(html`<ul class="people">${near.map((d) => html`
-          <li>${raw(driverCard(w, d, html`<button class="btn btn--secondary btn--sm" type="button" data-act="call" data-id="${d.id}" ${q.valid ? '' : raw('disabled')}>Chamar</button>`))}
-          <span class="person__eta">a ${formatDistance(w.distanceTo(d, ui.origin))} pelas ruas, cerca de ${minutes(w.etaTo(d, ui.origin))}</span></li>`)}</ul>`)
+        <h2 class="card-title">${raw(icons.moto())}Mototaxistas por perto</h2>
+        ${near.length ? raw(html`<p class="availability"><strong>${near.length === 1 ? 'Há mototaxista disponível' : 'Há mototaxistas disponíveis'} perto de você.</strong> O mais próximo chegaria em cerca de ${minutes(soonest)}.</p>
+          <p class="fine">Por segurança, a localização dos profissionais não aparece no mapa. Você vê a moto, o nome e a placa assim que um deles aceitar o pedido.</p>`)
           : raw(html`<p class="empty">Nenhum mototaxista disponível por perto agora. Se você pedir, outros profissionais são avisados e a busca é ampliada.</p>`)}
       </section>`) : ''}
 
@@ -298,7 +299,7 @@ export function mountPassenger(el, scope) {
       <section class="card ride">
         <div class="card-head"><h2 class="card-title">${sem ? 'Ninguém aceitou' : 'Corrida cancelada'}</h2>${raw(ridePill(ride.state))}</div>
         <p class="ride__route">${raw(routeText(ride))}</p>
-        <p>${sem ? 'Nenhum mototaxista disponível aceitou o pedido. Tente de novo em instantes, ou escolha um profissional específico na lista de disponíveis.' : 'O pedido foi cancelado.'}</p>
+        <p>${sem ? 'Nenhum mototaxista disponível aceitou o pedido. Tente de novo em instantes.' : 'O pedido foi cancelado.'}</p>
         <div class="actions"><button class="btn btn--primary" type="button" data-act="dismiss" data-id="${ride.id}">${sem ? 'Tentar de novo' : 'Fazer novo pedido'}</button></div>
       </section>`;
   };
@@ -373,10 +374,7 @@ export function mountPassenger(el, scope) {
     if (active) {
       const d = w.driver(active.driverId);
 
-      const around = active.state === 'ofertada'
-        ? w.eligibleDrivers(active.origin, 1e9).map((x) => asDriver(x, { status: 'disponivel', selected: x.id === active.currentOffer }))
-        : [];
-      mm.setDrivers(d ? [asDriver(d, { selected: true })] : around);
+      mm.setDrivers(d ? [asDriver(d, { selected: true })] : []);
       const key = `${active.id}|${active.state}`;
       planKey = '';
 
@@ -397,7 +395,7 @@ export function mountPassenger(el, scope) {
     } else {
       const showPlan = w.passenger.registered && ui.tab === 'pedir';
       mm.follow(false);
-      mm.setDrivers(showPlan && originReady() ? w.eligibleDrivers(ui.origin, 1e9).map((x) => asDriver(x, { status: 'disponivel' })) : []);
+      mm.setDrivers([]);
       if (showPlan && originReady()) {
         if (structural || planKey !== `${ui.origin.id}|${ui.origin.lat}|${ui.dest.id}|${roads.edgeCount}`) {
           planKey = `${ui.origin.id}|${ui.origin.lat}|${ui.dest.id}|${roads.edgeCount}`;
@@ -473,7 +471,6 @@ export function mountPassenger(el, scope) {
       if (ui.picking && !desktop()) ctx.sheet.set('collapsed');
       rerender();
     }
-    else if (act === 'call') { if (!originReady()) return; const r = w.requestRide({ origin: ui.origin, dest: ui.dest, preferredDriverId: b.dataset.id }); if (r) ui.shareOpen = false; rerender(); }
     else if (act === 'request') { if (originReady()) w.requestRide({ origin: ui.origin, dest: ui.dest }); ui.shareOpen = false; rerender(); }
     else if (act === 'cancel') { const r = w.activeRideOfPassenger(); if (r) w.cancelRide(r.id, 'passageiro', 'a pedido do passageiro'); rerender(); }
     else if (act === 'share') { ui.shareOpen = !ui.shareOpen; rerender(); }

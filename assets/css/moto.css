@@ -132,7 +132,7 @@
 
 .moto-float__status { font-size: 12.5px; font-weight: 600; color: var(--ink-2); margin: 0 0 8px; min-height: 1.4em; }
 .moto-float .sim-float__follow { align-items: flex-start; }
-.moto-mk { position: relative; width: 64px; height: 100%; color: var(--c, #8A94A6); }
+.moto-mk { position: relative; width: 76px; height: 100%; color: var(--c, #8A94A6); }
 .moto-mk__v { display: block; width: 100%; filter: drop-shadow(0 1px 1px rgba(20, 33, 61, .25)); }
 .moto3d { display: block; width: 100%; height: auto; overflow: visible; }
 .moto-ico { width: 20px; height: 20px; stroke-width: 2.2; }

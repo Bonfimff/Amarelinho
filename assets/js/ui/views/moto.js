@@ -42,7 +42,7 @@ function hub(el, scope) {
         <li>Em <strong>Passageiro</strong>, cadastre-se (o código é 123456) e peça uma corrida.</li>
         <li>Acompanhe a moto no mapa até a conclusão e avalie. A simulação roda em 5x; mude no cartão do mapa.</li>
         <li>Em <strong>Mototaxista</strong>, fique disponível e aceite os pedidos que chegarem. Como nos aplicativos de transporte, cada pedido é oferecido a um profissional por vez, do mais próximo ao mais distante.</li>
-        <li>Em <strong>Secretaria</strong>, veja a corrida, aprove cadastros e mude as regras.</li>
+        <li>Em <strong>Secretaria</strong>, veja todas as motos no mapa, acompanhe a corrida, aprove cadastros e mude as regras. Só a Secretaria vê onde os profissionais estão; o passageiro vê apenas a moto que aceitou o pedido.</li>
       </ol>
     </section>
     <section class="card">
@@ -55,7 +55,8 @@ function hub(el, scope) {
     </section>`;
 
   const draw = () => {
-    mm.setDrivers([...w.drivers.values()].filter((d) => d.reg === 'aprovado' && (d.online || d.rideId)).map((d) => w.driverView(d)));
+
+    mm.setDrivers([]);
     const s = w.stats();
     float.setStatus(roads.ready
       ? `${s.online} profissionais online · ${s.active} ${s.active === 1 ? 'corrida' : 'corridas'} em andamento`

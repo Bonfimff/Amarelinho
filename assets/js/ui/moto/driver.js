@@ -259,9 +259,8 @@ export function mountDriver(el, scope, { onRestart }) {
     const d = me();
     const ride = w.activeRideOfDriver(d.id);
     const offer = !ride ? w.offersFor(d.id)[0] : null;
-    const list = [...w.drivers.values()].filter((x) => x.reg === 'aprovado' && (x.online || x.rideId))
-      .map((x) => w.driverView(x, { name: x.isUser ? 'Você' : x.name, selected: x.isUser }));
-    mm.setDrivers(list);
+
+    mm.setDrivers(d.reg === 'aprovado' && (d.online || d.rideId) ? [w.driverView(d, { name: 'Você', selected: true })] : []);
     const shown = ride || offer;
     const key = `${shown?.id}|${shown?.state}`;
     if (ride) mm.setTrip({ ...w.tripView(ride), driverId: d.id });

@@ -1,13 +1,13 @@
 import { esc } from '../../lib/text.js';
 import { haversine } from '../../lib/geo.js';
 import { STAND_IDS, PLACES, placeById } from '../../data/mock/mototaxi/places.js';
-import { moto3d, headingStep, MOTO3D_BOX } from './moto3d.js';
+import { moto3d, headingStep, MOTO3D_BOX, paintFor } from './moto3d.js';
 
 const L = window.L;
 
 const COLORS = { disponivel: '#3DA83A', a_caminho: '#F2B900', no_local: '#F2B900', em_corrida: '#2152C4', offline: '#8A94A6' };
 const labelOf = { disponivel: 'Disponível', a_caminho: 'A caminho do passageiro', no_local: 'No local de embarque', em_corrida: 'Em corrida', offline: 'Offline' };
-const MOTO_W = 64;
+const MOTO_W = 76;
 const MOTO_H = Math.round((MOTO_W * MOTO3D_BOX.h) / MOTO3D_BOX.w);
 const GLIDE_MS = 260;
 
@@ -81,11 +81,13 @@ export class MotoMap {
   setDrivers(drivers) {
     const seen = new Set();
     const now = performance.now();
-    drivers.forEach((d) => {
+    drivers.forEach((item) => {
+
+      const d = { ...item, paint: paintFor(item.motoColor) };
       seen.add(d.id);
       const to = [d.lat, d.lng];
       const color = COLORS[d.status] || COLORS.offline;
-      const pose = `${headingStep(d.heading ?? 90)}|${color}|${d.carrying ? 1 : 0}`;
+      const pose = `${headingStep(d.heading ?? 90)}|${color}|${d.paint}|${d.carrying ? 1 : 0}`;
       const sig = `${d.selected ? 1 : 0}|${d.name}`;
       let m = this.#markers.get(d.id);
       if (!m) {
@@ -104,7 +106,7 @@ export class MotoMap {
       }
       if (m.pose !== pose) {
         const v = m.marker.getElement()?.querySelector('.moto-mk__v');
-        if (v) { v.innerHTML = moto3d(d.heading ?? 90, color, d.carrying); m.pose = pose; }
+        if (v) { v.innerHTML = moto3d(d.heading ?? 90, { paint: d.paint, ring: color, carrying: d.carrying }); m.pose = pose; }
       }
       m.marker.setZIndexOffset(d.selected ? 900 : 700);
       const title = `${d.name}: ${labelOf[d.status] || d.status}`;
@@ -119,7 +121,7 @@ export class MotoMap {
   #icon(d, color, sig) {
     return L.divIcon({
       className: '',
-      html: `<div class="moto-mk ${d.selected ? 'is-selected' : ''}" data-sig="${esc(sig)}" style="--c:${color}"><span class="moto-mk__v">${moto3d(d.heading ?? 90, color, d.carrying)}</span><span class="moto-mk__name">${esc(d.name)}</span></div>`,
+      html: `<div class="moto-mk ${d.selected ? 'is-selected' : ''}" data-sig="${esc(sig)}" style="--c:${color}"><span class="moto-mk__v">${moto3d(d.heading ?? 90, { paint: d.paint, ring: color, carrying: d.carrying })}</span><span class="moto-mk__name">${esc(d.name)}</span></div>`,
       iconSize: [MOTO_W, MOTO_H],
 
       iconAnchor: [MOTO_W / 2, Math.round(MOTO_H * MOTO3D_BOX.groundY)]
