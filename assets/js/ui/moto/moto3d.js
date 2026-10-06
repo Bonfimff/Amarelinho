@@ -45,27 +45,6 @@ function prism(p0, p1, rw, rh, color, { n = 8, gloss = 0, r1 = 1 } = {}) {
   return { color, gloss, faces };
 }
 
-function ellipsoid(c, rx, ry, rz, color, visor = null) {
-  const rows = 8;
-  const cols = 14;
-  const p = (i, j) => {
-    const th = (i / rows) * Math.PI;
-    const ph = (j / cols) * Math.PI * 2;
-    return [c[0] + rx * Math.sin(th) * Math.cos(ph), c[1] + ry * Math.sin(th) * Math.sin(ph), c[2] + rz * Math.cos(th)];
-  };
-  const shell = { color, gloss: 0.5, faces: [], center: c };
-  const glass = { color: visor, gloss: 0.8, faces: [], center: c };
-  for (let i = 0; i < rows; i += 1) {
-    for (let j = 0; j < cols; j += 1) {
-      const quad = [p(i, j), p(i + 1, j), p(i + 1, j + 1), p(i, j + 1)];
-      const m = mid(quad);
-      const front = visor && i >= 3 && i <= 4 && (m[0] - c[0]) > rx * 0.42;
-      (front ? glass : shell).faces.push(quad);
-    }
-  }
-  return visor ? [shell, glass] : [shell];
-}
-
 function wheel(cx, cz, r, w) {
   const out = [prism([cx, w / 2, cz], [cx, -w / 2, cz], r, r, '#1B1D21', { n: 20 })];
   const disc = (y, rr, color, gloss) => ({
@@ -80,7 +59,7 @@ function wheel(cx, cz, r, w) {
   return out;
 }
 
-function model(paint, carrying) {
+function model(paint) {
   const parts = [];
   const add = (p) => { (Array.isArray(p) ? p : [p]).forEach((x) => parts.push(x)); };
   const black = '#1C1E22';
@@ -111,34 +90,8 @@ function model(paint, carrying) {
   add(prism([5.9, 0, 8.7], [6.0, 0, 8.7], 0.72, 0.72, '#F1EEDC', { n: 12, gloss: 0.8 }));
   add(box(4.3, 5.0, -0.6, 0.6, 9.3, 9.9, black));
   add(prism([4.6, 2.75, 10.0], [4.6, -2.75, 10.0], 0.16, 0.16, black, { n: 6 }));
-
-  const jeans = '#2C3A52';
-  const jacket = '#2B2F36';
-  const vest = '#D9692A';
-  for (const s of [1, -1]) {
-    add(prism([-2.6, s * 1.25, 8.4], [1.0, s * 2.0, 8.6], 0.55, 0.6, jeans));
-    add(prism([1.0, s * 2.0, 8.6], [0.3, s * 2.05, 4.5], 0.45, 0.45, jeans));
-    add(box(0.0, 1.3, s > 0 ? 1.75 : -2.35, s > 0 ? 2.35 : -1.75, 3.9, 4.6, black));
-  }
-  add(prism([-2.7, 0, 8.3], [-1.3, 0, 13.0], 1.75, 1.15, vest, { n: 10, r1: 0.95 }));
-  add(prism([-1.3, 0, 12.9], [-1.1, 0, 13.6], 0.4, 0.4, '#8D5B3F', { n: 6 }));
-  for (const s of [1, -1]) {
-    add(prism([-1.4, s * 1.7, 12.6], [1.5, s * 2.3, 10.9], 0.5, 0.5, jacket));
-    add(prism([1.5, s * 2.3, 10.9], [4.1, s * 2.7, 10.15], 0.42, 0.42, jacket));
-    add(box(4.0, 4.7, s > 0 ? 2.4 : -3.0, s > 0 ? 3.0 : -2.4, 9.8, 10.5, black));
-  }
-  add(ellipsoid([-0.95, 0, 14.95], 1.55, 1.35, 1.45, '#1E2126', '#3E4C5E'));
-  if (carrying) {
-
-    for (const s of [1, -1]) {
-      add(prism([-5.6, s * 1.2, 8.3], [-3.2, s * 2.0, 8.4], 0.5, 0.55, '#3D4450'));
-      add(prism([-3.2, s * 2.0, 8.4], [-3.9, s * 2.05, 4.9], 0.42, 0.42, '#3D4450'));
-      add(box(-4.3, -3.2, s > 0 ? 1.75 : -2.3, s > 0 ? 2.3 : -1.75, 4.4, 5.0, black));
-      add(prism([-4.6, s * 1.6, 12.0], [-2.9, s * 1.55, 10.2], 0.34, 0.34, '#5B6472'));
-    }
-    add(prism([-5.7, 0, 8.2], [-4.6, 0, 12.5], 1.55, 1.05, '#5B6472', { n: 10, r1: 0.95 }));
-    add(ellipsoid([-4.45, 0, 14.25], 1.45, 1.28, 1.38, '#E3E6EA', '#3E4C5E'));
-  }
+  add(prism([4.6, 2.75, 10.0], [4.6, 1.95, 10.0], 0.24, 0.24, '#2A2B2F', { n: 6 }));
+  add(prism([4.6, -2.75, 10.0], [4.6, -1.95, 10.0], 0.24, 0.24, '#2A2B2F', { n: 6 }));
   return parts;
 }
 
@@ -154,7 +107,7 @@ const yawFor = (bearing) => {
   return Math.atan2(Math.sin(b) * SIN_E, Math.cos(b));
 };
 
-function render(bearing, paint, ring, carrying) {
+function render(bearing, paint, ring) {
   const th = yawFor(bearing);
   const s = Math.sin(th);
   const c = Math.cos(th);
@@ -173,7 +126,7 @@ function render(bearing, paint, ring, carrying) {
   if (ring) out.push(`<polygon points="${ground(11.8, 4.6, -0.2)}" fill="${ring}" fill-opacity=".22" stroke="${ring}" stroke-width=".55" stroke-opacity=".85"/>`);
   out.push(`<polygon points="${ground(10.2, 3.2, -0.2)}" fill="#0A0F1C" opacity=".28"/>`);
 
-  const parts = model(paint, carrying).map((p) => {
+  const parts = model(paint).map((p) => {
     const faces = p.faces.map((f) => f.map(world));
     const center = world(p.center || mid(p.faces.flat()));
     return { ...p, faces, center, depth: depth(center) };
@@ -206,7 +159,7 @@ const BOX = (() => {
     const th = yawFor(b);
     const s = Math.sin(th);
     const c = Math.cos(th);
-    for (const p of model('#000000', true)) {
+    for (const p of model('#000000')) {
       for (const f of p.faces) {
         for (const [x, y, z] of f) {
           const X = x * s - y * c;
@@ -228,12 +181,12 @@ const CACHE = new Map();
 
 export const headingStep = (bearing) => (Math.round((((bearing % 360) + 360) % 360) / STEP) * STEP) % 360;
 
-export function moto3d(bearing = 90, { paint = PAINT.vermelha, ring = null, carrying = false } = {}) {
+export function moto3d(bearing = 90, { paint = PAINT.vermelha, ring = null } = {}) {
   const b = headingStep(bearing);
-  const key = `${b}|${paint}|${ring}|${carrying ? 1 : 0}`;
+  const key = `${b}|${paint}|${ring}`;
   let svg = CACHE.get(key);
   if (!svg) {
-    svg = `<svg class="moto3d" viewBox="${-BOX.hw} ${BOX.top} ${BOX.hw * 2} ${BOX.bottom - BOX.top}" aria-hidden="true" focusable="false">${render(b, paint, ring, carrying)}</svg>`;
+    svg = `<svg class="moto3d" viewBox="${-BOX.hw} ${BOX.top} ${BOX.hw * 2} ${BOX.bottom - BOX.top}" aria-hidden="true" focusable="false">${render(b, paint, ring)}</svg>`;
     CACHE.set(key, svg);
   }
   return svg;

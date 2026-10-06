@@ -171,3 +171,13 @@
 .steps li.is-now span { background: var(--yellow-500); }
 .note--arrived { background: var(--green-100); color: #17692C; border-color: #BFE3C4; }
 .note--arrived .icon { color: #17692C; }
+.loc--row > div { flex: 1; }
+.loc--row .linkbtn { padding: 4px 0; flex: none; }
+.order { display: grid; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line, #E3E7EE); }
+.order__fare { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 0; }
+.order__fare strong { font-size: 26px; font-weight: 900; color: var(--blue-800); }
+.order__fare span { color: var(--ink-2); font-size: 14px; }
+.ride__fare { margin: 0; color: var(--ink-2); font-size: 14px; }
+.ride__fare strong { color: var(--blue-800); font-size: 17px; margin-right: 4px; }
+.ride > .linkbtn { justify-self: start; font-size: 14px; }
+.card.ride { display: grid; gap: 8px; }

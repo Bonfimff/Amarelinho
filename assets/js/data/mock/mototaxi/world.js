@@ -196,11 +196,7 @@ export class MotoWorld extends Emitter {
   }
 
   driverView(d, extra = {}) {
-    const ride = d.rideId && this.ride(d.rideId);
-    return {
-      id: d.id, name: d.name, status: this.statusOf(d), lat: d.lat, lng: d.lng, heading: d.heading, motoColor: d.moto.color,
-      carrying: ride?.state === 'em_corrida', ...extra
-    };
+    return { id: d.id, name: d.name, status: this.statusOf(d), lat: d.lat, lng: d.lng, heading: d.heading, motoColor: d.moto.color, ...extra };
   }
 
   rating(driverId) {

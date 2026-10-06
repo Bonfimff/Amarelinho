@@ -13,26 +13,31 @@ import {
 const OCC_TYPES = ['Conduta do mototaxista', 'Segurança', 'Cobrança acima da tabela', 'Acidente', 'Outro'];
 
 const ui = {
-  tab: 'pedir', origin: PLACES[0], dest: PLACES[PLACES.length - 1], customs: [], picking: null,
+  tab: 'pedir', origin: PLACES[0], dest: null, customs: [], picking: null,
 
   originMode: 'gps', loc: { status: 'idle' },
   step: 1, draft: { name: '', phone: '' }, rating: 0, shareOpen: false, dismissed: new Set(), occRide: '', lastOcc: null, lastState: {}
 };
 
 const placeOptions = () => [...PLACES, ...ui.customs];
-const optionsHtml = (selectedId) => placeOptions().map((p) => html`<option value="${p.id}" ${p.id === selectedId ? raw('selected') : ''}>${p.name}</option>`);
+const optionsHtml = (selectedId, placeholder = '') => [
+  placeholder ? html`<option value="" ${selectedId ? '' : raw('selected')} disabled>${placeholder}</option>` : '',
+  ...placeOptions().map((p) => html`<option value="${p.id}" ${p.id === selectedId ? raw('selected') : ''}>${p.name}</option>`)
+];
+
+const arrivalText = (sec) => (sec < 45 ? 'O mototaxista mais próximo está a menos de 1 minuto de você.' : `O mototaxista mais próximo chega em cerca de ${minutes(sec)}.`);
 
 function rideLive(w, ride) {
   const d = w.driver(ride.driverId);
-  if (!d) return { line: '', sub: '', pct: 0 };
+  if (!d) return { line: '', sub: '' };
   if (ride.state === 'a_caminho') {
     const dist = w.distanceTo(d, ride.origin);
-    return { line: `Chega em ${minutes(dist / d.speed)}`, sub: `${formatDistance(dist)} até o embarque`, pct: 0 };
+    return { line: `${d.name} chega em ${minutes(dist / d.speed)}`, sub: `${formatDistance(dist)} até você` };
   }
-  if (ride.state === 'no_local') return { line: 'Mototaxista no local', sub: `Confira a placa ${d.moto.plate} antes de embarcar`, pct: 0 };
-  if (ride.atDest) return { line: 'Você chegou ao destino', sub: 'Aguardando o mototaxista encerrar a corrida', pct: 100 };
+  if (ride.state === 'no_local') return { line: 'Seu mototaxista chegou', sub: `Confira a placa ${d.moto.plate} e diga o código` };
+  if (ride.atDest) return { line: 'Você chegou ao destino', sub: 'O mototaxista vai encerrar a corrida' };
   const rem = w.distanceTo(d, ride.dest);
-  return { line: `Destino em ${minutes(rem / d.speed)}`, sub: `${formatDistance(rem)} restantes`, pct: Math.round((1 - rem / Math.max(1, ride.distanceM)) * 100) };
+  return { line: `Chegada em ${minutes(rem / d.speed)}`, sub: `${formatDistance(rem)} até o destino` };
 }
 
 const STEPS = ['A caminho', 'Chegou', 'Em viagem', 'Destino'];
@@ -123,7 +128,7 @@ export function mountPassenger(el, scope) {
     if (ui.originMode === 'manual') {
       return html`
         <div class="field">
-          <label class="field__label" for="m-origin">Embarque (ponto informado por você)</label>
+          <label class="field__label" for="m-origin">Embarque</label>
           <div class="field__row">
             <select id="m-origin" data-act="origin" data-keep="origin">${optionsHtml(ui.origin.id)}</select>
             <button type="button" class="btn btn--secondary" data-act="pick" data-kind="origin" aria-pressed="${ui.picking === 'origin'}">${ui.picking === 'origin' ? 'Toque no mapa' : 'No mapa'}</button>
@@ -135,44 +140,41 @@ export function mountPassenger(el, scope) {
     if (l.status === 'ok') {
       const off = l.snap.offM;
       return html`
-        <div class="loc loc--ok" role="status">
-          <span class="loc__dot" aria-hidden="true"></span>
-          <div>
-            <strong>Sua localização atual</strong>
-            <span>${l.snap.onRoad ? `Embarque na rua mais próxima, perto de ${l.snap.near.name}${off > 60 ? `, a ${formatDistance(off)} de você` : ''}.` : 'Embarque onde você está. As ruas da sua região ainda estão carregando.'}</span>
-            <span class="fine">${l.accuracy >= 1 ? `Precisão de cerca de ${Math.round(l.accuracy)} m.` : ''}</span>
+        <div class="field">
+          <span class="field__label">Embarque</span>
+          <div class="loc loc--ok loc--row" role="status">
+            <span class="loc__dot" aria-hidden="true"></span>
+            <div>
+              <strong>Sua localização</strong>
+              <span>${l.snap.onRoad ? `Na rua mais próxima, perto de ${l.snap.near.name}${off > 60 ? ` (a ${formatDistance(off)} de você)` : ''}` : 'Onde você está'}</span>
+            </div>
+            <button type="button" class="linkbtn" data-act="manual">Alterar</button>
           </div>
-        </div>
-        <div class="actions">
-          <button type="button" class="btn btn--secondary btn--sm" data-act="loc-ask">${raw(icons.locate())}Atualizar</button>
-          <button type="button" class="btn btn--ghost btn--sm" data-act="manual">Informar outro ponto</button>
         </div>`;
     }
     if (l.status === 'asking') {
       return html`
-        <div class="loc" role="status"><span class="spinner" aria-hidden="true"></span><div><strong>Procurando você</strong><span>Libere a localização na janela do navegador. Se ela não aparecer, procure o ícone de localização ao lado do endereço.</span></div></div>
-        <div class="actions"><button type="button" class="btn btn--ghost" data-act="manual">Informar o ponto manualmente</button></div>`;
+        <div class="loc" role="status"><span class="spinner" aria-hidden="true"></span><div><strong>Procurando você</strong><span>Permita o acesso à localização na janela do navegador.</span></div></div>
+        <button type="button" class="linkbtn" data-act="manual">Informar o embarque sem a localização</button>`;
     }
     const why = {
-      denied: 'A localização está bloqueada neste navegador. Libere nas configurações do site (o cadeado ao lado do endereço) e tente de novo.',
-      error: 'Não foi possível obter a sua localização agora. Confira o GPS ou a conexão e tente de novo.',
+      denied: 'A localização está bloqueada neste navegador. Libere no cadeado ao lado do endereço e tente de novo.',
+      error: 'Não foi possível obter a sua localização. Confira o GPS ou a conexão.',
       unsupported: 'Este navegador não permite usar a localização.',
-      idle: 'Para chamar um mototaxista, precisamos saber onde você está. O embarque é marcado na sua localização atual.'
+      idle: 'O mototaxista vai buscar você onde você está.'
     }[l.status];
     return html`
       <div class="loc loc--ask">
         <span class="loc__dot" aria-hidden="true"></span>
-        <div><strong>${l.status === 'idle' ? 'Usar a sua localização' : 'Sem localização'}</strong><span>${why}</span></div>
+        <div><strong>${l.status === 'idle' ? 'Onde você está?' : 'Sem localização'}</strong><span>${why}</span></div>
       </div>
-      <div class="actions">
-        <button type="button" class="btn btn--primary" data-act="loc-ask">${raw(icons.locate())}${l.status === 'idle' ? 'Permitir e usar minha localização' : 'Tentar de novo'}</button>
-        <button type="button" class="btn btn--ghost" data-act="manual">Informar o ponto manualmente</button>
-      </div>`;
+      <button type="button" class="btn btn--primary btn--block" data-act="loc-ask">${raw(icons.locate())}${l.status === 'idle' ? 'Usar minha localização' : 'Tentar de novo'}</button>
+      <button type="button" class="linkbtn" data-act="manual">Informar o embarque sem a localização</button>`;
   };
 
   const planner = () => {
     const ready = originReady();
-    const q = ready ? w.quote(ui.origin, ui.dest) : { valid: false };
+    const q = ready && ui.dest ? w.quote(ui.origin, ui.dest) : { valid: false };
 
     const near = ready ? w.eligibleDrivers(ui.origin, w.rules.despacho.raioInicialM) : [];
     const soonest = near.length ? Math.min(...near.slice(0, 5).map((d) => w.etaTo(d, ui.origin))) : null;
@@ -184,86 +186,66 @@ export function mountPassenger(el, scope) {
           <div class="field">
             <label class="field__label" for="m-dest">Destino</label>
             <div class="field__row">
-              <select id="m-dest" data-act="dest" data-keep="dest">${optionsHtml(ui.dest.id)}</select>
+              <select id="m-dest" data-act="dest" data-keep="dest">${optionsHtml(ui.dest?.id, 'Escolha o destino')}</select>
               <button type="button" class="btn btn--secondary" data-act="pick" data-kind="dest" aria-pressed="${ui.picking === 'dest'}">${ui.picking === 'dest' ? 'Toque no mapa' : 'No mapa'}</button>
             </div>
           </div>
-          ${ui.picking ? raw(html`<p class="note note--warn" role="note">${raw(icons.info())}<span>Toque no mapa para escolher o ${ui.picking === 'origin' ? 'embarque' : 'destino'}. O ponto é ajustado para a rua mais próxima.</span></p>`) : ''}
+          ${ui.picking ? raw(html`<p class="note note--warn" role="note">${raw(icons.info())}<span>Toque no mapa para escolher o ${ui.picking === 'origin' ? 'embarque' : 'destino'}.</span></p>`) : ''}
         </div>
-        <p class="fine">Sua localização é usada só para marcar o embarque nesta demonstração. Não é gravada nem enviada a nenhum servidor.</p>
-      </section>
-
-      <section class="card quote" aria-live="polite">
-        ${q.valid ? raw(html`
-          <dl class="quote__grid">
-            <div><dt>Distância</dt><dd>${km(q.distanceM)}</dd></div>
-            <div><dt>Tempo estimado</dt><dd>${minutes(q.durationSec)}</dd></div>
-            <div class="quote__fare"><dt>Valor pela tabela</dt><dd>${money(q.fare)}</dd></div>
-          </dl>
-          <p class="fine">Pagamento direto ao mototaxista, em dinheiro ou Pix. Os valores da tabela são fictícios nesta demonstração: quem define é a Secretaria.</p>`)
-          : raw(html`<p class="muted">${ready ? 'Escolha um destino a pelo menos 200 m do embarque.' : 'O valor aparece depois que o embarque for marcado.'}</p>`)}
-      </section>
-
-      ${ready ? raw(html`
-      <section class="card">
-        <h2 class="card-title">${raw(icons.moto())}Mototaxistas por perto</h2>
-        ${near.length ? raw(html`<p class="availability"><strong>${near.length === 1 ? 'Há mototaxista disponível' : 'Há mototaxistas disponíveis'} perto de você.</strong> O mais próximo chegaria em cerca de ${minutes(soonest)}.</p>
-          <p class="fine">Por segurança, a localização dos profissionais não aparece no mapa. Você vê a moto, o nome e a placa assim que um deles aceitar o pedido.</p>`)
-          : raw(html`<p class="empty">Nenhum mototaxista disponível por perto agora. Se você pedir, outros profissionais são avisados e a busca é ampliada.</p>`)}
-      </section>`) : ''}
-
-      <button class="btn btn--primary btn--lg btn--block" type="button" data-act="request" ${q.valid ? '' : raw('disabled')}>${raw(icons.moto())}Pedir mototáxi</button>`;
+        ${ready ? raw(html`
+          <div class="order" aria-live="polite">
+            ${q.valid ? raw(html`
+              <p class="order__fare"><strong>${money(q.fare)}</strong><span>${km(q.distanceM)} · cerca de ${minutes(q.durationSec)} de viagem</span></p>`)
+              : raw(html`<p class="muted">${ui.dest ? 'Escolha um destino a pelo menos 200 m do embarque.' : 'Escolha o destino para ver o valor.'}</p>`)}
+            <button class="btn btn--primary btn--lg btn--block" type="button" data-act="request" ${q.valid ? '' : raw('disabled')}>${raw(icons.moto())}Pedir mototáxi</button>
+            <p class="fine">${near.length ? arrivalText(soonest) : 'Nenhum mototaxista perto agora. Ao pedir, a busca é ampliada.'} Pagamento direto ao mototaxista, em dinheiro ou Pix.</p>
+          </div>`) : ''}
+        <p class="fine">Sua localização só marca o embarque e não sai do seu aparelho. Valores fictícios nesta demonstração.</p>
+      </section>`;
   };
 
   const rideCard = (ride) => {
     const d = w.driver(ride.driverId);
     const live = rideLive(w, ride);
-    const searching = ride.state === 'ofertada';
-    return html`
-      <section class="card ride">
-        <div class="card-head">
-          <h2 class="card-title">Corrida ${ride.id}</h2>
-          ${raw(ridePill(ride.state))}
-        </div>
-        <p class="ride__route">${raw(routeText(ride))}</p>
-        ${searching ? '' : raw(html`<ol class="steps" aria-label="Andamento da corrida">${STEPS.map((t, i) => html`<li class="${i < stepOf(ride) ? 'is-done' : ''} ${i === stepOf(ride) ? 'is-now' : ''}" ${i === stepOf(ride) ? raw('aria-current="step"') : ''}><span aria-hidden="true"></span>${t}</li>`)}</ol>`)}
-        ${searching ? raw(html`
+    if (ride.state === 'ofertada') {
+      return html`
+        <section class="card ride">
+          <p class="ride__route">${raw(routeText(ride))}</p>
           <div class="ride__status">
             <span class="spinner" aria-hidden="true"></span>
             <div>
-              <strong>Procurando o mototaxista mais próximo</strong>
-              <span>${ride.currentOffer ? raw(html`Oferta ${ride.queueIdx} de ${ride.queue.length}${ride.round === 2 ? ' (busca ampliada)' : ''}. Aguardando resposta: <span data-bind="countdown"></span>`) : ride.queue.length ? 'Buscando o próximo mototaxista' : 'Ninguém por perto. Ampliando a busca'}</span>
-            </div>
-          </div>`) : raw(html`
-          <div class="ride__status ride__status--live">
-            <div>
-              <strong data-bind="live-line">${live.line}</strong>
-              <span data-bind="live-sub">${live.sub}</span>
+              <strong>Procurando mototaxista</strong>
+              <span>${ride.round === 2 ? 'Ampliando a busca para mais longe.' : 'Chamando o mais próximo. Costuma levar menos de 1 minuto.'}</span>
             </div>
           </div>
-          ${ride.state === 'em_corrida' ? raw(html`<div class="progress" role="progressbar" aria-label="Progresso da corrida" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${live.pct}"><span class="progress__bar" data-progress style="width:${live.pct}%"></span></div>`) : ''}
-          ${raw(driverCard(w, d))}
-          ${ride.state === 'no_local' ? raw(html`<div class="note note--arrived" role="alert">${raw(icons.check())}<p><strong>Seu mototaxista chegou.</strong> Confira a placa e informe o código para começar.</p></div>`) : ''}
-          ${['a_caminho', 'no_local'].includes(ride.state) ? raw(html`
-            <div class="pin">
-              <span class="field__label">Código de embarque</span>
-              <strong class="pin__code" aria-label="Código ${ride.pin.split('').join(' ')}">${ride.pin}</strong>
-              <span class="fine">Informe este código ao mototaxista para iniciar a corrida. Assim você confirma que está na moto certa.</span>
-            </div>`) : ''}`)}
-        <dl class="facts facts--2">
-          <div><dt>Distância</dt><dd>${km(ride.distanceM)}</dd></div>
-          <div><dt>Valor pela tabela</dt><dd>${money(ride.fare)}</dd></div>
-        </dl>
+          <p class="ride__fare"><strong>${money(ride.fare)}</strong> pago direto ao mototaxista</p>
+          <div class="actions"><button class="btn btn--secondary" type="button" data-act="cancel">Cancelar pedido</button></div>
+        </section>`;
+    }
+    return html`
+      <section class="card ride">
+        <p class="ride__route">${raw(routeText(ride))}</p>
+        <div class="ride__status ride__status--live" ${ride.state === 'no_local' ? raw('role="alert"') : ''}>
+          <div>
+            <strong data-bind="live-line">${live.line}</strong>
+            <span data-bind="live-sub">${live.sub}</span>
+          </div>
+        </div>
+        <ol class="steps" aria-label="Andamento da corrida">${STEPS.map((t, i) => html`<li class="${i < stepOf(ride) ? 'is-done' : ''} ${i === stepOf(ride) ? 'is-now' : ''}" ${i === stepOf(ride) ? raw('aria-current="step"') : ''}><span aria-hidden="true"></span>${t}</li>`)}</ol>
+        ${raw(driverCard(w, d))}
+        ${['a_caminho', 'no_local'].includes(ride.state) ? raw(html`
+          <div class="pin">
+            <span class="field__label">Código de embarque</span>
+            <strong class="pin__code" aria-label="Código ${ride.pin.split('').join(' ')}">${ride.pin}</strong>
+            <span class="fine">Diga este código ao mototaxista para começar a corrida.</span>
+          </div>`) : ''}
+        <p class="ride__fare"><strong>${money(ride.fare)}</strong> pago direto ao mototaxista</p>
         <div class="actions">
           ${ride.state !== 'em_corrida' ? raw(html`<button class="btn btn--secondary" type="button" data-act="cancel">Cancelar corrida</button>`) : ''}
           <button class="btn btn--ghost" type="button" data-act="share" aria-expanded="${ui.shareOpen}">${raw(icons.external())}Compartilhar trajeto</button>
-          <button class="btn btn--ghost" type="button" data-act="occ-ride" data-id="${ride.id}">${raw(icons.alert())}Registrar ocorrência</button>
         </div>
-        ${ui.shareOpen ? raw(html`<div class="note" role="note">${raw(icons.info())}<div><p>Exemplo de link para uma pessoa de confiança: <strong>amarelinho.exksvol.com/#/mototaxi/${ride.id}</strong></p><p class="fine">Na versão real, quem recebesse o link acompanharia a moto no mapa até o fim da corrida.</p></div></div>`) : ''}
-      </section>
-      <section class="card">
-        <h2 class="card-title">${raw(icons.clock())}O que aconteceu</h2>
-        ${raw(timelineList(ride.events))}
+        ${ui.shareOpen ? raw(html`<div class="note" role="note">${raw(icons.info())}<div><p>Exemplo de link para uma pessoa de confiança: <strong>amarelinho.exksvol.com/#/mototaxi/${ride.id}</strong></p><p class="fine">Na versão real, quem recebesse o link acompanharia a moto até o fim da corrida.</p></div></div>`) : ''}
+        <button type="button" class="linkbtn" data-act="occ-ride" data-id="${ride.id}">Precisa de ajuda ou quer relatar um problema?</button>
       </section>`;
   };
 
@@ -271,36 +253,30 @@ export function mountPassenger(el, scope) {
     if (ride.state === 'concluida') {
       return html`
         <section class="card ride">
-          <div class="card-head"><h2 class="card-title">Corrida concluída</h2>${raw(ridePill('concluida'))}</div>
+          <h2 class="card-title">${raw(icons.check())}Você chegou</h2>
           <p class="ride__route">${raw(routeText(ride))}</p>
-          <dl class="facts facts--2">
-            <div><dt>Distância</dt><dd>${km(ride.distanceM)}</dd></div>
-            <div><dt>Valor pela tabela</dt><dd>${money(ride.fare)}</dd></div>
-          </dl>
-          <p class="fine">Pague direto ao mototaxista. Se o valor cobrado for diferente da tabela, registre uma ocorrência.</p>
+          <p class="ride__fare"><strong>${money(ride.fare)}</strong> pague direto ao mototaxista</p>
           ${ride.rating ? raw(html`<p class="ride__thanks">${raw(icons.check())}Obrigado pela avaliação: ${ride.rating} de 5.</p>`) : raw(html`
             <div class="rate">
               <p class="field__label" id="rate-label">Como foi a corrida com ${w.driver(ride.driverId).name}?</p>
               <div class="rate__stars" role="group" aria-labelledby="rate-label">
                 ${[1, 2, 3, 4, 5].map((n) => html`<button type="button" data-act="star" data-v="${n}" aria-pressed="${ui.rating === n}" aria-label="${n} de 5" class="${ui.rating >= n ? 'is-on' : ''}">${raw(icons.star('star-ico'))}</button>`)}
               </div>
-              <textarea name="comment" rows="2" placeholder="Comentário (opcional)" data-keep="comment" aria-label="Comentário sobre a corrida"></textarea>
-              <button class="btn btn--primary btn--block" type="button" data-act="rate-send" ${ui.rating ? '' : raw('disabled')}>Enviar avaliação</button>
+              ${ui.rating ? raw(html`
+                <textarea name="comment" rows="2" placeholder="Quer comentar? (opcional)" data-keep="comment" aria-label="Comentário sobre a corrida"></textarea>
+                <button class="btn btn--secondary btn--block" type="button" data-act="rate-send">Enviar avaliação</button>`) : ''}
             </div>`)}
-          <div class="actions">
-            <button class="btn btn--secondary" type="button" data-act="occ-ride" data-id="${ride.id}">${raw(icons.alert())}Registrar ocorrência</button>
-            <button class="btn btn--primary" type="button" data-act="dismiss" data-id="${ride.id}">Nova corrida</button>
-          </div>
-        </section>
-        <section class="card"><h2 class="card-title">${raw(icons.clock())}O que aconteceu</h2>${raw(timelineList(ride.events))}</section>`;
+          <button class="btn btn--primary btn--lg btn--block" type="button" data-act="dismiss" data-id="${ride.id}">Nova corrida</button>
+          <button type="button" class="linkbtn" data-act="occ-ride" data-id="${ride.id}">Cobraram diferente da tabela ou houve algum problema?</button>
+        </section>`;
     }
     const sem = ride.state === 'sem_aceite';
     return html`
       <section class="card ride">
-        <div class="card-head"><h2 class="card-title">${sem ? 'Ninguém aceitou' : 'Corrida cancelada'}</h2>${raw(ridePill(ride.state))}</div>
+        <h2 class="card-title">${sem ? 'Nenhum mototaxista disponível' : 'Pedido cancelado'}</h2>
         <p class="ride__route">${raw(routeText(ride))}</p>
-        <p>${sem ? 'Nenhum mototaxista disponível aceitou o pedido. Tente de novo em instantes.' : 'O pedido foi cancelado.'}</p>
-        <div class="actions"><button class="btn btn--primary" type="button" data-act="dismiss" data-id="${ride.id}">${sem ? 'Tentar de novo' : 'Fazer novo pedido'}</button></div>
+        ${sem ? raw(html`<p>Ninguém por perto aceitou agora. Tente de novo em instantes.</p>`) : ''}
+        <button class="btn btn--primary btn--lg btn--block" type="button" data-act="dismiss" data-id="${ride.id}">${sem ? 'Tentar de novo' : 'Fazer novo pedido'}</button>
       </section>`;
   };
 
@@ -336,7 +312,6 @@ export function mountPassenger(el, scope) {
           <li>Só entre numa moto que tenha aceitado o seu pedido.</li>
           <li>Use "Compartilhar trajeto" para avisar alguém de confiança.</li>
         </ul>
-        <p class="fine">Botão de emergência: depende de um protocolo com quem vai atender (a definir com a Secretaria).</p>
       </section>
       <section class="card">
         <h2 class="card-title">${raw(icons.alert())}Registrar ocorrência</h2>
@@ -397,9 +372,10 @@ export function mountPassenger(el, scope) {
       mm.follow(false);
       mm.setDrivers([]);
       if (showPlan && originReady()) {
-        if (structural || planKey !== `${ui.origin.id}|${ui.origin.lat}|${ui.dest.id}|${roads.edgeCount}`) {
-          planKey = `${ui.origin.id}|${ui.origin.lat}|${ui.dest.id}|${roads.edgeCount}`;
-          mm.setTrip({ origin: ui.origin, dest: ui.dest, plan: w.planPath(ui.origin, ui.dest) });
+        const k = `${ui.origin.id}|${ui.origin.lat}|${ui.dest?.id}|${roads.edgeCount}`;
+        if (structural || planKey !== k) {
+          planKey = k;
+          mm.setTrip({ origin: ui.origin, dest: ui.dest, plan: ui.dest ? w.planPath(ui.origin, ui.dest) : null });
         }
       } else { mm.setTrip({}); planKey = ''; }
       mm.setWalk(showPlan && here && ui.origin.source === 'gps' && ui.origin.offM > 25 ? here : null, showPlan ? ui.origin : null);
@@ -413,14 +389,11 @@ export function mountPassenger(el, scope) {
     if (active.state === 'ofertada') {
       const o = active.currentOffer && active.offers[active.currentOffer];
       const left = o ? Math.max(0, Math.ceil(o.expiresT - w.t)) : 0;
-      bindText(el, { countdown: `${left} s` });
       float.setStatus(`${active.id}: procurando mototaxista${o ? ` (oferta ${active.queueIdx} de ${active.queue.length}, ${left} s)` : ''}`);
       return;
     }
     const live = rideLive(w, active);
     bindText(el, { 'live-line': live.line, 'live-sub': live.sub });
-    const bar = el.querySelector('[data-progress]');
-    if (bar) { bar.style.width = `${live.pct}%`; bar.parentElement.setAttribute('aria-valuenow', String(live.pct)); }
     float.setStatus(`${active.id}: ${live.line.toLowerCase()}`);
   }
 
@@ -471,7 +444,7 @@ export function mountPassenger(el, scope) {
       if (ui.picking && !desktop()) ctx.sheet.set('collapsed');
       rerender();
     }
-    else if (act === 'request') { if (originReady()) w.requestRide({ origin: ui.origin, dest: ui.dest }); ui.shareOpen = false; rerender(); }
+    else if (act === 'request') { if (originReady() && ui.dest) w.requestRide({ origin: ui.origin, dest: ui.dest }); ui.shareOpen = false; rerender(); }
     else if (act === 'cancel') { const r = w.activeRideOfPassenger(); if (r) w.cancelRide(r.id, 'passageiro', 'a pedido do passageiro'); rerender(); }
     else if (act === 'share') { ui.shareOpen = !ui.shareOpen; rerender(); }
     else if (act === 'star') { ui.rating = Number(b.dataset.v); rerender(); }
@@ -489,8 +462,11 @@ export function mountPassenger(el, scope) {
     const s = e.target.closest('select[data-act]');
     if (!s) return;
     const place = placeOptions().find((p) => p.id === s.value);
+    if (!place) return;
     if (s.dataset.act === 'origin') ui.origin = place; else ui.dest = place;
     rerender();
+
+    if (ui.dest && originReady()) mm.fit(mm.bounds([ui.origin, ui.dest]));
   };
 
   const onSubmit = (e) => {
@@ -550,7 +526,7 @@ export function mountPassenger(el, scope) {
 }
 
 export function resetPassengerUi() {
-  Object.assign(ui, { tab: 'pedir', origin: ui.loc.snap?.place || PLACES[0], dest: PLACES[PLACES.length - 1], customs: [], picking: null, originMode: ui.loc.status === 'ok' ? 'gps' : ui.originMode, step: 1, draft: { name: '', phone: '' }, rating: 0, shareOpen: false, occRide: '', lastOcc: null });
+  Object.assign(ui, { tab: 'pedir', origin: ui.loc.snap?.place || PLACES[0], dest: null, customs: [], picking: null, originMode: ui.loc.status === 'ok' ? 'gps' : ui.originMode, step: 1, draft: { name: '', phone: '' }, rating: 0, shareOpen: false, occRide: '', lastOcc: null });
   ui.dismissed.clear();
   ui.lastState = {};
 }
