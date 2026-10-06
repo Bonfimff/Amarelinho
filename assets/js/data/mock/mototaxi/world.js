@@ -1,9 +1,13 @@
 import { Emitter } from '../../../lib/emitter.js';
 import { nowSec, secToHHMM } from '../../../lib/time.js';
-import { PLACES, placeById, latLngAt, placeAt } from './corridor.js';
+import { haversine, bearing } from '../../../lib/geo.js';
+import { PLACES, placeById, distanceM } from './places.js';
+import { roads } from './roads.js';
 import { SEED_DRIVERS, DOC_TYPES, DEFAULT_RULES, PASSENGER_NAMES } from './seed.js';
 
 const AVG_SPEED = 8.3;
+const IDLE_SPEED = 2.5;
+const ARRIVE_M = 4;
 const STEP_MS = 250;
 const MAX_ACTIVE_SPAWNED = 4;
 const ACTIVE = ['ofertada', 'a_caminho', 'no_local', 'em_corrida'];
@@ -52,6 +56,8 @@ export class MotoWorld extends Emitter {
   constructor() {
     super();
     this.reset();
+
+    roads.on('change', () => this.#onRoads());
   }
 
   reset({ driverFromScratch = false } = {}) {
@@ -71,8 +77,8 @@ export class MotoWorld extends Emitter {
       const d = {
         id: s.id, isUser: Boolean(s.isUser), name: s.name, phone: s.phone, moto: { ...s.moto },
         reg: s.reg, regNote: s.regNote || '', docs: { ...s.docs }, credential: null,
-        standId: s.stand, online: s.online, along: Math.max(0, stand.along + (Number(s.id.slice(1)) % 3 - 1) * 180),
-        speed: rand(7.4, 9.2), rideId: null, registeredSim: this.sim - 86400 * 20,
+        standId: s.stand, online: s.online, ...this.#homeNear(stand, Number(s.id.slice(1))),
+        speed: rand(7.4, 9.2), heading: rand(0, 360), moving: false, route: null, extra: Boolean(s.extra), rideId: null, registeredSim: this.sim - 86400 * 20,
         stats: seedStats(Boolean(s.isUser)), cancelled: s.isUser ? 0 : Math.floor(rand(0, 3))
       };
       if (d.reg === 'aprovado' || d.reg === 'suspenso') d.credential = this.#newCredential();
@@ -141,10 +147,60 @@ export class MotoWorld extends Emitter {
     return d.online ? 'disponivel' : 'offline';
   }
 
-  eligibleDrivers(along, radiusM) {
+  eligibleDrivers(place, radiusM) {
     return [...this.drivers.values()]
-      .filter((d) => d.reg === 'aprovado' && d.online && !d.rideId && Math.abs(d.along - along) <= radiusM)
-      .sort((a, b) => Math.abs(a.along - along) - Math.abs(b.along - along));
+      .map((d) => ({ d, m: distanceM(d, place) }))
+      .filter(({ d, m }) => d.reg === 'aprovado' && d.online && !d.rideId && m <= radiusM)
+      .sort((a, b) => a.m - b.m)
+      .map(({ d }) => d);
+  }
+
+  distanceTo(d, place) {
+    const r = d.route;
+    if (r && r.target.lat === place.lat && r.target.lng === place.lng) return Math.max(0, r.total - r.s);
+    return roads.route(d, place).lengthM;
+  }
+
+  etaTo(d, place) { return this.distanceTo(d, place) / d.speed; }
+
+  remainingPath(d) {
+    const r = d.route;
+    if (!r) return [];
+    const out = [[d.lat, d.lng]];
+    for (let i = r.i + 1; i < r.pts.length; i += 1) out.push([r.pts[i][0], r.pts[i][1]]);
+    return out;
+  }
+
+  planPath(a, b) { return roads.route(a, b).pts.map((p) => [p[0], p[1]]); }
+
+  tripView(ride) {
+    const d = ride.driverId && this.drivers.get(ride.driverId);
+    const view = { origin: ride.origin, dest: ride.dest, plan: null, leg: null, legKind: null };
+    if (ride.state === 'em_corrida' && d) {
+      view.leg = ride.atDest ? [] : this.#legTo(d, ride.dest);
+      view.legKind = 'ride';
+    } else {
+      view.plan = this.planPath(ride.origin, ride.dest);
+      if (ride.state === 'a_caminho' && d) {
+        view.leg = this.#legTo(d, ride.origin);
+        view.legKind = 'pickup';
+      }
+    }
+    return view;
+  }
+
+  #legTo(d, target) {
+    const r = d.route;
+    if (r && r.target.lat === target.lat && r.target.lng === target.lng) return this.remainingPath(d);
+    return [[d.lat, d.lng], ...this.planPath(d, target)];
+  }
+
+  driverView(d, extra = {}) {
+    const ride = d.rideId && this.ride(d.rideId);
+    return {
+      id: d.id, name: d.name, status: this.statusOf(d), lat: d.lat, lng: d.lng, heading: d.heading,
+      carrying: ride?.state === 'em_corrida', ...extra
+    };
   }
 
   rating(driverId) {
@@ -171,7 +227,7 @@ export class MotoWorld extends Emitter {
   }
 
   quote(origin, dest) {
-    const distanceM = Math.abs(dest.along - origin.along);
+    const distanceM = roads.route(origin, dest).lengthM;
     return { distanceM, fare: this.fareFor(distanceM), durationSec: distanceM / AVG_SPEED, valid: distanceM >= 200 };
   }
 
@@ -184,6 +240,7 @@ export class MotoWorld extends Emitter {
     if (this.activeRideOfPassenger()) return null;
     const q = this.quote(origin, dest);
     if (!q.valid) return null;
+    this.#ensureNearby(origin);
     const ride = this.#createRide({
       passenger: { name: this.passenger.name || 'Passageiro', phone: this.passenger.phone, isUser: true },
       origin, dest, preferredDriverId
@@ -470,6 +527,68 @@ export class MotoWorld extends Emitter {
     return [head, ...rows].map((row) => row.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\n');
   }
 
+  #ensureNearby(origin) {
+    const need = 3 - this.eligibleDrivers(origin, this.rules.despacho.raioInicialM).length;
+    if (need <= 0) return;
+    const pool = [...this.drivers.values()].filter((d) => d.extra && d.reg === 'aprovado' && !d.online && !d.rideId);
+    pool.slice(0, need).forEach((d, i) => {
+      const min = 600 + i * 300;
+      const p = roads.randomNear(origin.lat, origin.lng, min, min + 1500) || offset(origin, min + rand(0, 1500), rand(0, 360));
+      Object.assign(d, { lat: p.lat, lng: p.lng, home: { lat: p.lat, lng: p.lng }, route: null, online: true });
+    });
+  }
+
+  #homeNear(stand, n) {
+    const p = (roads.ready && roads.randomNear(stand.lat, stand.lng, 40, 380)) || offset(stand, 60 + (n % 4) * 70, n * 83);
+    return { lat: p.lat, lng: p.lng, home: { lat: p.lat, lng: p.lng } };
+  }
+
+  #onRoads() {
+    for (const d of this.drivers.values()) {
+      d.route = null;
+      if (!d.rideId && !d.placedOnRoad) {
+        Object.assign(d, this.#homeNear(placeById(d.standId), Number(d.id.slice(1))));
+        d.placedOnRoad = roads.ready;
+      }
+    }
+    for (const r of this.rides) {
+      if (ACTIVE.includes(r.state) && r.state !== 'em_corrida') {
+        r.distanceM = this.quote(r.origin, r.dest).distanceM;
+        r.fare = this.fareFor(r.distanceM);
+      }
+    }
+    this.emit('change', { topic: 'roads' });
+    this.emit('tick');
+  }
+
+  #goTo(d, target) {
+    const r = d.route;
+    if (r && r.target.lat === target.lat && r.target.lng === target.lng) return r;
+    const res = roads.route(d, target);
+    d.route = { target: { lat: target.lat, lng: target.lng }, pts: res.pts, total: res.lengthM, s: 0, i: 0 };
+    return d.route;
+  }
+
+  #advance(d, step) {
+    const r = d.route;
+    r.s = Math.min(r.total, r.s + step);
+    while (r.i < r.pts.length - 2 && r.pts[r.i + 1][2] <= r.s) r.i += 1;
+    const a = r.pts[r.i];
+    const b = r.pts[Math.min(r.i + 1, r.pts.length - 1)];
+    const span = b[2] - a[2];
+    const t = span > 0 ? Math.max(0, Math.min(1, (r.s - a[2]) / span)) : 1;
+    d.lat = a[0] + (b[0] - a[0]) * t;
+    d.lng = a[1] + (b[1] - a[1]) * t;
+    if (span > 0.5) d.heading = bearing(a[0], a[1], b[0], b[1]);
+    d.moving = r.s < r.total;
+  }
+
+  #arrived(d, target) {
+    const r = d.route;
+    if (r && r.target.lat === target.lat && r.target.lng === target.lng) return r.total - r.s < ARRIVE_M;
+    return haversine(d.lat, d.lng, target.lat, target.lng) < ARRIVE_M;
+  }
+
   #newCredential() {
     return `MT-${pad4(++this.#seq.cred)}`;
   }
@@ -507,9 +626,10 @@ export class MotoWorld extends Emitter {
 
   #dispatch(ride) {
     const asked = new Set(Object.keys(ride.offers));
-    const pool = this.eligibleDrivers(ride.origin.along, ride.radiusM).filter((d) => !ride.excluded.includes(d.id) && !asked.has(d.id));
-    const eta = (d) => Math.abs(d.along - ride.origin.along) / d.speed;
-    pool.sort((a, b) => eta(a) - eta(b) || (this.rating(b.id) || 0) - (this.rating(a.id) || 0));
+    const pool = this.eligibleDrivers(ride.origin, ride.radiusM).filter((d) => !ride.excluded.includes(d.id) && !asked.has(d.id));
+
+    const eta = new Map(pool.map((d) => [d.id, this.etaTo(d, ride.origin)]));
+    pool.sort((a, b) => eta.get(a.id) - eta.get(b.id) || (this.rating(b.id) || 0) - (this.rating(a.id) || 0));
 
     const first = ride.round === 1 && ride.preferredDriverId ? pool.findIndex((d) => d.id === ride.preferredDriverId) : -1;
     if (first > 0) pool.unshift(...pool.splice(first, 1));
@@ -530,7 +650,7 @@ export class MotoWorld extends Emitter {
 
       if (!d || d.reg !== 'aprovado' || !d.online || d.rideId) continue;
       const windowSec = this.rules.despacho.tempoAceiteSeg;
-      const distM = Math.abs(d.along - ride.origin.along);
+      const distM = this.distanceTo(d, ride.origin);
       ride.currentOffer = id;
       ride.offers[id] = {
         state: 'pendente', sentT: this.t, expiresT: this.t + windowSec,
@@ -575,7 +695,7 @@ export class MotoWorld extends Emitter {
         this.#queueNext(ride);
       }
     } else if (ride.state === 'a_caminho') {
-      if (Math.abs(d.along - ride.origin.along) < 12) {
+      if (this.#arrived(d, ride.origin)) {
         ride.state = 'no_local';
         ride.pickupSec = this.sim - ride.acceptedSim;
         ride.autoStartT = this.t + rand(8, 16);
@@ -585,7 +705,7 @@ export class MotoWorld extends Emitter {
     } else if (ride.state === 'no_local') {
       if (!d.isUser && this.t >= ride.autoStartT) this.startRide(ride.id, null, { auto: true });
     } else if (ride.state === 'em_corrida') {
-      if (!ride.atDest && Math.abs(d.along - ride.dest.along) < 12) {
+      if (!ride.atDest && this.#arrived(d, ride.dest)) {
         ride.atDest = true;
         ride.autoFinishT = this.t + rand(2, 4);
         this.#event(ride, 'destino', 'A moto chegou ao destino.');
@@ -613,17 +733,21 @@ export class MotoWorld extends Emitter {
     for (const d of this.drivers.values()) {
       const ride = d.rideId && this.ride(d.rideId);
       let target = null;
-      if (ride?.state === 'a_caminho') target = ride.origin.along;
-      else if (ride?.state === 'em_corrida' && !ride.atDest) target = ride.dest.along;
+      if (ride?.state === 'a_caminho') target = ride.origin;
+      else if (ride?.state === 'em_corrida' && !ride.atDest) target = ride.dest;
       let step = d.speed * dtSim;
-      if (target == null && !ride && d.online && d.reg === 'aprovado') {
+      if (!target && !ride && d.online && d.reg === 'aprovado' && haversine(d.lat, d.lng, d.home.lat, d.home.lng) > 30) {
 
-        target = placeById(d.standId).along;
-        step = Math.min(step, 2.5 * dtSim);
+        target = d.home;
+        step = Math.min(step, IDLE_SPEED * dtSim);
       }
-      if (target == null) continue;
-      const delta = target - d.along;
-      d.along += Math.sign(delta) * Math.min(Math.abs(delta), step);
+      if (!target) {
+        d.moving = false;
+        if (!ride) d.route = null;
+        continue;
+      }
+      this.#goTo(d, target);
+      this.#advance(d, step);
     }
   }
 
@@ -632,22 +756,27 @@ export class MotoWorld extends Emitter {
     this.#nextSpawnT = this.t + rand(25, 60);
     const open = this.rides.filter((r) => !r.passenger.isUser && ACTIVE.includes(r.state)).length;
     if (open >= MAX_ACTIVE_SPAWNED) return;
+    const [a, b] = this.#randomTrip();
+    this.#createRide({ passenger: { name: pick(PASSENGER_NAMES), phone: `(21) 9****-${pad4(Math.floor(rand(0, 9999)))}`, isUser: false, rating: Math.round(rand(4.3, 5) * 10) / 10 }, origin: a, dest: b });
+  }
+
+  #randomTrip(streets = true) {
     let a;
     let b;
-    do {
-      a = pick(PLACES);
-      b = pick(PLACES);
-    } while (Math.abs(a.along - b.along) < 1500 || Math.abs(a.along - b.along) > 9000);
-    this.#createRide({ passenger: { name: pick(PASSENGER_NAMES), phone: `(21) 9****-${pad4(Math.floor(rand(0, 9999)))}`, isUser: false, rating: Math.round(rand(4.3, 5) * 10) / 10 }, origin: a, dest: b });
+    do { a = pick(PLACES); b = pick(PLACES); } while (distanceM(a, b) < 1500 || distanceM(a, b) > 9000);
+    const near = (p) => {
+      if (!streets || !roads.ready || Math.random() < 0.5) return p;
+      const q = roads.randomNear(p.lat, p.lng, 150, 900);
+      return q ? { id: `pt-${q.lat.toFixed(5)},${q.lng.toFixed(5)}`, name: `Rua perto de ${p.name}`, lat: q.lat, lng: q.lng } : p;
+    };
+    return [near(a), near(b)];
   }
 
   #seedHistory() {
     const names = [...this.drivers.values()].filter((d) => d.reg === 'aprovado' && !d.isUser);
     const states = ['concluida', 'concluida', 'concluida', 'concluida', 'concluida', 'concluida', 'concluida', 'concluida', 'cancelada', 'sem_aceite', 'concluida', 'concluida'];
     states.forEach((state, i) => {
-      let a;
-      let b;
-      do { a = pick(PLACES); b = pick(PLACES); } while (Math.abs(a.along - b.along) < 1500 || Math.abs(a.along - b.along) > 9000);
+      const [a, b] = this.#randomTrip(false);
       const createdSim = this.sim - (states.length - i) * rand(900, 1700);
       const d = pick(names);
       const q = this.quote(a, b);
@@ -673,4 +802,8 @@ export class MotoWorld extends Emitter {
 }
 
 export const money = (v) => `R$ ${v.toFixed(2).replace('.', ',')}`;
-export { latLngAt, placeAt };
+
+function offset(p, m, deg) {
+  const a = (deg * Math.PI) / 180;
+  return { lat: p.lat + (m * Math.cos(a)) / 111320, lng: p.lng + (m * Math.sin(a)) / (111320 * Math.cos((p.lat * Math.PI) / 180)) };
+}

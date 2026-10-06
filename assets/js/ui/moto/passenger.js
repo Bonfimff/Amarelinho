@@ -1,7 +1,9 @@
 import { html, raw } from '../../lib/text.js';
 import { icons } from '../icons.js';
 import { href } from '../router.js';
-import { PLACES, placeAt } from '../../data/mock/mototaxi/corridor.js';
+import { PLACES, placeAt, snapToRoad } from '../../data/mock/mototaxi/places.js';
+import { roads, tilesAround } from '../../data/mock/mototaxi/roads.js';
+import { haversine } from '../../lib/geo.js';
 import { secToHHMM } from '../../lib/time.js';
 import {
   simBadge, money, km, minutes, routeText, ridePill, pill, driverCard, timelineList, formatDistance,
@@ -12,6 +14,8 @@ const OCC_TYPES = ['Conduta do mototaxista', 'Segurança', 'Cobrança acima da t
 
 const ui = {
   tab: 'pedir', origin: PLACES[0], dest: PLACES[PLACES.length - 1], customs: [], picking: null,
+
+  originMode: 'gps', loc: { status: 'idle' },
   step: 1, draft: { name: '', phone: '' }, rating: 0, shareOpen: false, dismissed: new Set(), occRide: '', lastOcc: null, lastState: {}
 };
 
@@ -22,20 +26,24 @@ function rideLive(w, ride) {
   const d = w.driver(ride.driverId);
   if (!d) return { line: '', sub: '', pct: 0 };
   if (ride.state === 'a_caminho') {
-    const dist = Math.abs(d.along - ride.origin.along);
+    const dist = w.distanceTo(d, ride.origin);
     return { line: `Chega em ${minutes(dist / d.speed)}`, sub: `${formatDistance(dist)} até o embarque`, pct: 0 };
   }
   if (ride.state === 'no_local') return { line: 'Mototaxista no local', sub: `Confira a placa ${d.moto.plate} antes de embarcar`, pct: 0 };
   if (ride.atDest) return { line: 'Você chegou ao destino', sub: 'Aguardando o mototaxista encerrar a corrida', pct: 100 };
-  const rem = Math.abs(d.along - ride.dest.along);
+  const rem = w.distanceTo(d, ride.dest);
   return { line: `Destino em ${minutes(rem / d.speed)}`, sub: `${formatDistance(rem)} restantes`, pct: Math.round((1 - rem / Math.max(1, ride.distanceM)) * 100) };
 }
+
+const STEPS = ['A caminho', 'Chegou', 'Em viagem', 'Destino'];
+const stepOf = (ride) => (ride.state === 'a_caminho' ? 0 : ride.state === 'no_local' ? 1 : ride.atDest ? 3 : 2);
 
 export function mountPassenger(el, scope) {
   const { w, mm, float, ctx } = scope;
   const desktop = () => window.matchMedia('(min-width: 1024px)').matches;
   let lastTrip = 0;
   let tripKey = '';
+  let planKey = '';
 
   const head = () => html`
     <header class="view-head">
@@ -67,21 +75,110 @@ export function mountPassenger(el, scope) {
         </form>`)}
     </section>`;
 
+  let watchId = null;
+  const originReady = () => ui.originMode === 'manual' || ui.loc.status === 'ok';
+
+  const applyFix = (pos) => {
+    const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+    const snap = snapToRoad(lat, lng);
+    const prev = ui.loc.snap?.place;
+    const moved = !prev || haversine(prev.lat, prev.lng, snap.place.lat, snap.place.lng) > 25;
+    ui.loc = { status: 'ok', lat, lng, accuracy, snap };
+    if (ui.originMode === 'gps' && !w.activeRideOfPassenger()) ui.origin = snap.place;
+
+    const missing = tilesAround([[lat, lng]], 1500).filter(([x, y]) => !roads.hasTile(x, y));
+    if (missing.length) roads.load(missing).catch(() => {});
+    return moved;
+  };
+
+  const resnap = () => {
+    if (ui.loc.status !== 'ok') return;
+    ui.loc.snap = snapToRoad(ui.loc.lat, ui.loc.lng);
+    if (ui.originMode === 'gps' && !w.activeRideOfPassenger()) ui.origin = ui.loc.snap.place;
+  };
+
+  const startWatch = () => {
+    if (watchId != null || !navigator.geolocation) return;
+    watchId = navigator.geolocation.watchPosition((pos) => {
+      if (applyFix(pos)) sched.schedule(); else syncMap();
+    }, () => {}, { enableHighAccuracy: true, maximumAge: 5000 });
+  };
+
+  const askLocation = () => {
+    if (!navigator.geolocation) { ui.loc = { status: 'unsupported' }; sched.now(); return; }
+    ui.loc = { status: 'asking' };
+    sched.now();
+    navigator.geolocation.getCurrentPosition((pos) => {
+      applyFix(pos);
+      startWatch();
+      sched.now();
+      mm.fit(mm.bounds([ui.origin, ui.dest]));
+    }, (err) => {
+      ui.loc = { status: err.code === 1 ? 'denied' : 'error' };
+      sched.now();
+    }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 5000 });
+  };
+
+  const originBlock = () => {
+    if (ui.originMode === 'manual') {
+      return html`
+        <div class="field">
+          <label class="field__label" for="m-origin">Embarque (ponto informado por você)</label>
+          <div class="field__row">
+            <select id="m-origin" data-act="origin" data-keep="origin">${optionsHtml(ui.origin.id)}</select>
+            <button type="button" class="btn btn--secondary" data-act="pick" data-kind="origin" aria-pressed="${ui.picking === 'origin'}">${ui.picking === 'origin' ? 'Toque no mapa' : 'No mapa'}</button>
+          </div>
+          <button type="button" class="linkbtn" data-act="use-gps">Usar a minha localização</button>
+        </div>`;
+    }
+    const l = ui.loc;
+    if (l.status === 'ok') {
+      const off = l.snap.offM;
+      return html`
+        <div class="loc loc--ok" role="status">
+          <span class="loc__dot" aria-hidden="true"></span>
+          <div>
+            <strong>Sua localização atual</strong>
+            <span>${l.snap.onRoad ? `Embarque na rua mais próxima, perto de ${l.snap.near.name}${off > 60 ? `, a ${formatDistance(off)} de você` : ''}.` : 'Embarque onde você está. As ruas da sua região ainda estão carregando.'}</span>
+            <span class="fine">${l.accuracy >= 1 ? `Precisão de cerca de ${Math.round(l.accuracy)} m.` : ''}</span>
+          </div>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn btn--secondary btn--sm" data-act="loc-ask">${raw(icons.locate())}Atualizar</button>
+          <button type="button" class="btn btn--ghost btn--sm" data-act="manual">Informar outro ponto</button>
+        </div>`;
+    }
+    if (l.status === 'asking') {
+      return html`
+        <div class="loc" role="status"><span class="spinner" aria-hidden="true"></span><div><strong>Procurando você</strong><span>Libere a localização na janela do navegador. Se ela não aparecer, procure o ícone de localização ao lado do endereço.</span></div></div>
+        <div class="actions"><button type="button" class="btn btn--ghost" data-act="manual">Informar o ponto manualmente</button></div>`;
+    }
+    const why = {
+      denied: 'A localização está bloqueada neste navegador. Libere nas configurações do site (o cadeado ao lado do endereço) e tente de novo.',
+      error: 'Não foi possível obter a sua localização agora. Confira o GPS ou a conexão e tente de novo.',
+      unsupported: 'Este navegador não permite usar a localização.',
+      idle: 'Para chamar um mototaxista, precisamos saber onde você está. O embarque é marcado na sua localização atual.'
+    }[l.status];
+    return html`
+      <div class="loc loc--ask">
+        <span class="loc__dot" aria-hidden="true"></span>
+        <div><strong>${l.status === 'idle' ? 'Usar a sua localização' : 'Sem localização'}</strong><span>${why}</span></div>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn btn--primary" data-act="loc-ask">${raw(icons.locate())}${l.status === 'idle' ? 'Permitir e usar minha localização' : 'Tentar de novo'}</button>
+        <button type="button" class="btn btn--ghost" data-act="manual">Informar o ponto manualmente</button>
+      </div>`;
+  };
+
   const planner = () => {
-    const q = w.quote(ui.origin, ui.dest);
-    const near = w.eligibleDrivers(ui.origin.along, w.rules.despacho.raioInicialM).slice(0, 4);
+    const ready = originReady();
+    const q = ready ? w.quote(ui.origin, ui.dest) : { valid: false };
+    const near = ready ? w.eligibleDrivers(ui.origin, w.rules.despacho.raioInicialM).slice(0, 4) : [];
     return html`
       <section class="card">
         <h2 class="card-title">${raw(icons.pin())}Para onde você vai?</h2>
         <div class="form">
-          <div class="field">
-            <label class="field__label" for="m-origin">Embarque</label>
-            <div class="field__row">
-              <select id="m-origin" data-act="origin" data-keep="origin">${optionsHtml(ui.origin.id)}</select>
-              <button type="button" class="btn btn--secondary" data-act="pick" data-kind="origin" aria-pressed="${ui.picking === 'origin'}">${ui.picking === 'origin' ? 'Toque no mapa' : 'No mapa'}</button>
-            </div>
-          </div>
-          <button type="button" class="swap" data-act="swap" aria-label="Trocar embarque e destino">${raw(icons.swap())}</button>
+          ${raw(originBlock())}
           <div class="field">
             <label class="field__label" for="m-dest">Destino</label>
             <div class="field__row">
@@ -89,8 +186,9 @@ export function mountPassenger(el, scope) {
               <button type="button" class="btn btn--secondary" data-act="pick" data-kind="dest" aria-pressed="${ui.picking === 'dest'}">${ui.picking === 'dest' ? 'Toque no mapa' : 'No mapa'}</button>
             </div>
           </div>
-          ${ui.picking ? raw(html`<p class="note note--warn" role="note">${raw(icons.info())}<span>Toque no mapa, perto do trajeto tracejado, para escolher o ${ui.picking === 'origin' ? 'embarque' : 'destino'}. O ponto é ajustado para a via mais próxima.</span></p>`) : ''}
+          ${ui.picking ? raw(html`<p class="note note--warn" role="note">${raw(icons.info())}<span>Toque no mapa para escolher o ${ui.picking === 'origin' ? 'embarque' : 'destino'}. O ponto é ajustado para a rua mais próxima.</span></p>`) : ''}
         </div>
+        <p class="fine">Sua localização é usada só para marcar o embarque nesta demonstração. Não é gravada nem enviada a nenhum servidor.</p>
       </section>
 
       <section class="card quote" aria-live="polite">
@@ -100,16 +198,18 @@ export function mountPassenger(el, scope) {
             <div><dt>Tempo estimado</dt><dd>${minutes(q.durationSec)}</dd></div>
             <div class="quote__fare"><dt>Valor pela tabela</dt><dd>${money(q.fare)}</dd></div>
           </dl>
-          <p class="fine">Pagamento direto ao mototaxista, em dinheiro ou Pix. Os valores da tabela são fictícios nesta demonstração: quem define é a Secretaria.</p>`) : raw(html`<p class="muted">Escolha um embarque e um destino diferentes (pelo menos 200 m de distância).</p>`)}
+          <p class="fine">Pagamento direto ao mototaxista, em dinheiro ou Pix. Os valores da tabela são fictícios nesta demonstração: quem define é a Secretaria.</p>`)
+          : raw(html`<p class="muted">${ready ? 'Escolha um destino a pelo menos 200 m do embarque.' : 'O valor aparece depois que o embarque for marcado.'}</p>`)}
       </section>
 
+      ${ready ? raw(html`
       <section class="card">
-        <h2 class="card-title">${raw(icons.moto())}Mototaxistas disponíveis perto do embarque</h2>
+        <h2 class="card-title">${raw(icons.moto())}Mototaxistas disponíveis perto de você</h2>
         ${near.length ? raw(html`<ul class="people">${near.map((d) => html`
           <li>${raw(driverCard(w, d, html`<button class="btn btn--secondary btn--sm" type="button" data-act="call" data-id="${d.id}" ${q.valid ? '' : raw('disabled')}>Chamar</button>`))}
-          <span class="person__eta">a ${formatDistance(Math.abs(d.along - ui.origin.along))}, cerca de ${minutes(Math.abs(d.along - ui.origin.along) / d.speed)}</span></li>`)}</ul>`)
-          : raw(html`<p class="empty">Nenhum mototaxista disponível perto deste ponto agora. Você pode pedir assim mesmo: a busca é ampliada.</p>`)}
-      </section>
+          <span class="person__eta">a ${formatDistance(w.distanceTo(d, ui.origin))} pelas ruas, cerca de ${minutes(w.etaTo(d, ui.origin))}</span></li>`)}</ul>`)
+          : raw(html`<p class="empty">Nenhum mototaxista disponível por perto agora. Se você pedir, outros profissionais são avisados e a busca é ampliada.</p>`)}
+      </section>`) : ''}
 
       <button class="btn btn--primary btn--lg btn--block" type="button" data-act="request" ${q.valid ? '' : raw('disabled')}>${raw(icons.moto())}Pedir mototáxi</button>`;
   };
@@ -125,6 +225,7 @@ export function mountPassenger(el, scope) {
           ${raw(ridePill(ride.state))}
         </div>
         <p class="ride__route">${raw(routeText(ride))}</p>
+        ${searching ? '' : raw(html`<ol class="steps" aria-label="Andamento da corrida">${STEPS.map((t, i) => html`<li class="${i < stepOf(ride) ? 'is-done' : ''} ${i === stepOf(ride) ? 'is-now' : ''}" ${i === stepOf(ride) ? raw('aria-current="step"') : ''}><span aria-hidden="true"></span>${t}</li>`)}</ol>`)}
         ${searching ? raw(html`
           <div class="ride__status">
             <span class="spinner" aria-hidden="true"></span>
@@ -141,6 +242,7 @@ export function mountPassenger(el, scope) {
           </div>
           ${ride.state === 'em_corrida' ? raw(html`<div class="progress" role="progressbar" aria-label="Progresso da corrida" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${live.pct}"><span class="progress__bar" data-progress style="width:${live.pct}%"></span></div>`) : ''}
           ${raw(driverCard(w, d))}
+          ${ride.state === 'no_local' ? raw(html`<div class="note note--arrived" role="alert">${raw(icons.check())}<p><strong>Seu mototaxista chegou.</strong> Confira a placa e informe o código para começar.</p></div>`) : ''}
           ${['a_caminho', 'no_local'].includes(ride.state) ? raw(html`
             <div class="pin">
               <span class="field__label">Código de embarque</span>
@@ -264,38 +366,52 @@ export function mountPassenger(el, scope) {
 
   function syncMap(structural = false) {
     const active = w.passenger.registered && ui.tab === 'pedir' ? w.activeRideOfPassenger() : null;
+    const asDriver = (x, extra = {}) => w.driverView(x, extra);
+
+    const here = ui.loc.status === 'ok' && w.passenger.registered && ui.tab === 'pedir' ? ui.loc : null;
+    mm.setUser(here);
     if (active) {
       const d = w.driver(active.driverId);
 
       const around = active.state === 'ofertada'
-        ? w.eligibleDrivers(active.origin.along, 1e9).map((x) => ({ id: x.id, name: x.name, status: 'disponivel', along: x.along, selected: x.id === active.currentOffer }))
+        ? w.eligibleDrivers(active.origin, 1e9).map((x) => asDriver(x, { status: 'disponivel', selected: x.id === active.currentOffer }))
         : [];
-      mm.setDrivers(d ? [{ id: d.id, name: d.name, status: w.statusOf(d), along: d.along, selected: true }] : around);
+      mm.setDrivers(d ? [asDriver(d, { selected: true })] : around);
       const key = `${active.id}|${active.state}`;
+      planKey = '';
+
+      mm.setTrip({ ...w.tripView(active), driverId: d?.id });
       if (structural || key !== tripKey || performance.now() - lastTrip > 900) {
-        mm.setTrip({
-          origin: active.origin, dest: active.dest, driverAlong: d?.along, showPickup: active.state === 'a_caminho',
-          progressAlong: active.state === 'em_corrida' && d ? d.along : null
-        });
+        mm.setWalk(here && active.origin.source === 'gps' && active.origin.offM > 25 ? here : null, active.origin);
         lastTrip = performance.now();
       }
       if (key !== tripKey) {
         tripKey = key;
-        const pts = mm.bounds([active.origin, active.dest, ...(d ? [{ along: d.along }] : [])]);
-        mm.fit(pts);
+
+        const onTheWay = ['a_caminho', 'no_local'].includes(active.state);
+        mm.follow(active.state === 'em_corrida');
+        const items = onTheWay ? [active.origin, d] : [active.origin, active.dest, d];
+        if (active.state !== 'em_corrida') mm.fit(mm.bounds(items));
       }
+      if (active.state === 'em_corrida' && d) mm.track(d);
     } else {
       const showPlan = w.passenger.registered && ui.tab === 'pedir';
-      mm.setDrivers(showPlan ? w.eligibleDrivers(ui.origin.along, 1e9).map((d) => ({ id: d.id, name: d.name, status: 'disponivel', along: d.along })) : []);
-      if (showPlan) mm.setTrip({ origin: ui.origin, dest: ui.dest });
-      else mm.setTrip({});
+      mm.follow(false);
+      mm.setDrivers(showPlan && originReady() ? w.eligibleDrivers(ui.origin, 1e9).map((x) => asDriver(x, { status: 'disponivel' })) : []);
+      if (showPlan && originReady()) {
+        if (structural || planKey !== `${ui.origin.id}|${ui.origin.lat}|${ui.dest.id}|${roads.edgeCount}`) {
+          planKey = `${ui.origin.id}|${ui.origin.lat}|${ui.dest.id}|${roads.edgeCount}`;
+          mm.setTrip({ origin: ui.origin, dest: ui.dest, plan: w.planPath(ui.origin, ui.dest) });
+        }
+      } else { mm.setTrip({}); planKey = ''; }
+      mm.setWalk(showPlan && here && ui.origin.source === 'gps' && ui.origin.offM > 25 ? here : null, showPlan ? ui.origin : null);
       tripKey = '';
     }
   }
 
   function tick() {
     const active = w.activeRideOfPassenger();
-    if (!active) { float.setStatus(w.passenger.registered ? 'Pronto para pedir uma corrida.' : 'Faça o cadastro rápido para pedir.'); return; }
+    if (!active) { float.setStatus(!w.passenger.registered ? 'Faça o cadastro rápido para pedir.' : originReady() ? 'Pronto para pedir uma corrida.' : 'Aguardando a sua localização para marcar o embarque.'); return; }
     if (active.state === 'ofertada') {
       const o = active.currentOffer && active.offers[active.currentOffer];
       const left = o ? Math.max(0, Math.ceil(o.expiresT - w.t)) : 0;
@@ -317,7 +433,8 @@ export function mountPassenger(el, scope) {
         const r = w.ride(id);
         if (r?.passenger.isUser) handleRideChange(r);
       }
-      if (['ride', 'drivers', 'occurrences', 'reset', 'passenger'].includes(topic)) sched.schedule();
+      if (topic === 'roads') resnap();
+      if (['ride', 'drivers', 'occurrences', 'reset', 'passenger', 'roads'].includes(topic)) sched.schedule();
     })
   ];
 
@@ -340,11 +457,13 @@ export function mountPassenger(el, scope) {
     if (!b || b.tagName === 'SELECT') return;
     const act = b.dataset.act;
     if (act === 'tab') { ui.tab = b.dataset.tab; ui.picking = null; mm.pickMode(null); rerender(); if (ui.tab === 'pedir') mm.fit(); }
-    else if (act === 'swap') { [ui.origin, ui.dest] = [ui.dest, ui.origin]; rerender(); }
+    else if (act === 'loc-ask') askLocation();
+    else if (act === 'manual') { ui.originMode = 'manual'; rerender(); mm.fit(mm.bounds([ui.origin, ui.dest])); }
+    else if (act === 'use-gps') { ui.originMode = 'gps'; ui.picking = null; mm.pickMode(null); if (ui.loc.status === 'ok') ui.origin = ui.loc.snap.place; rerender(); if (ui.loc.status !== 'ok') askLocation(); }
     else if (act === 'pick') {
       ui.picking = ui.picking === b.dataset.kind ? null : b.dataset.kind;
-      mm.pickMode(ui.picking ? ({ along }) => {
-        const place = placeAt(along);
+      mm.pickMode(ui.picking ? ({ lat, lng }) => {
+        const place = placeAt(lat, lng);
         if (!PLACES.some((p) => p.id === place.id) && !ui.customs.some((p) => p.id === place.id)) ui.customs.push(place);
         if (ui.picking === 'origin') ui.origin = place; else ui.dest = place;
         ui.picking = null;
@@ -354,8 +473,8 @@ export function mountPassenger(el, scope) {
       if (ui.picking && !desktop()) ctx.sheet.set('collapsed');
       rerender();
     }
-    else if (act === 'call') { const r = w.requestRide({ origin: ui.origin, dest: ui.dest, preferredDriverId: b.dataset.id }); if (r) ui.shareOpen = false; rerender(); }
-    else if (act === 'request') { w.requestRide({ origin: ui.origin, dest: ui.dest }); ui.shareOpen = false; rerender(); }
+    else if (act === 'call') { if (!originReady()) return; const r = w.requestRide({ origin: ui.origin, dest: ui.dest, preferredDriverId: b.dataset.id }); if (r) ui.shareOpen = false; rerender(); }
+    else if (act === 'request') { if (originReady()) w.requestRide({ origin: ui.origin, dest: ui.dest }); ui.shareOpen = false; rerender(); }
     else if (act === 'cancel') { const r = w.activeRideOfPassenger(); if (r) w.cancelRide(r.id, 'passageiro', 'a pedido do passageiro'); rerender(); }
     else if (act === 'share') { ui.shareOpen = !ui.shareOpen; rerender(); }
     else if (act === 'star') { ui.rating = Number(b.dataset.v); rerender(); }
@@ -413,19 +532,28 @@ export function mountPassenger(el, scope) {
   mm.fit();
   render();
 
+  if (ui.loc.status === 'ok') startWatch();
+  else if (ui.loc.status === 'idle' && navigator.permissions?.query) {
+    navigator.permissions.query({ name: 'geolocation' }).then((p) => { if (p.state === 'granted' && ui.loc.status === 'idle') askLocation(); }).catch(() => {});
+  }
+
   return function unmount() {
     offs.forEach((f) => f());
     sched.destroy();
     el.removeEventListener('click', onClick);
     el.removeEventListener('change', onChange);
     el.removeEventListener('submit', onSubmit);
+    if (watchId != null) navigator.geolocation.clearWatch(watchId);
+    mm.setUser(null);
+    mm.setWalk(null, null);
+    mm.follow(false);
     mm.pickMode(null);
     ui.picking = null;
   };
 }
 
 export function resetPassengerUi() {
-  Object.assign(ui, { tab: 'pedir', origin: PLACES[0], dest: PLACES[PLACES.length - 1], customs: [], picking: null, step: 1, draft: { name: '', phone: '' }, rating: 0, shareOpen: false, occRide: '', lastOcc: null });
+  Object.assign(ui, { tab: 'pedir', origin: ui.loc.snap?.place || PLACES[0], dest: PLACES[PLACES.length - 1], customs: [], picking: null, originMode: ui.loc.status === 'ok' ? 'gps' : ui.originMode, step: 1, draft: { name: '', phone: '' }, rating: 0, shareOpen: false, occRide: '', lastOcc: null });
   ui.dismissed.clear();
   ui.lastState = {};
 }

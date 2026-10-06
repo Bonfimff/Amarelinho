@@ -20,7 +20,6 @@ export function mountDriver(el, scope, { onRestart }) {
   const desktop = () => window.matchMedia('(min-width: 1024px)').matches;
   const me = () => w.userDriver;
   const keeper = openKeeper(el);
-  let lastTrip = 0;
   let tripKey = '';
   if (!ui.profile) ui.profile = { name: me().name, phone: me().phone, model: me().moto.model, color: me().moto.color, plate: me().moto.plate };
 
@@ -70,7 +69,7 @@ export function mountDriver(el, scope, { onRestart }) {
 
   const offerCard = (ride) => {
     const d = me();
-    const toPickup = Math.abs(d.along - ride.origin.along);
+    const toPickup = w.distanceTo(d, ride.origin);
     const score = w.passengerScore(ride);
     return html`
       <section class="card offer">
@@ -98,8 +97,8 @@ export function mountDriver(el, scope, { onRestart }) {
 
   const activeCard = (ride) => {
     const d = me();
-    const toPickup = Math.abs(d.along - ride.origin.along);
-    const rem = Math.abs(d.along - ride.dest.along);
+    const toPickup = w.distanceTo(d, ride.origin);
+    const rem = w.distanceTo(d, ride.dest);
     const pct = ride.state === 'em_corrida' ? Math.round((1 - rem / Math.max(1, ride.distanceM)) * 100) : 0;
     return html`
       <section class="card ride">
@@ -260,22 +259,19 @@ export function mountDriver(el, scope, { onRestart }) {
     const d = me();
     const ride = w.activeRideOfDriver(d.id);
     const offer = !ride ? w.offersFor(d.id)[0] : null;
-    const list = [...w.drivers.values()].filter((x) => x.reg === 'aprovado' && (x.online || x.rideId)).map((x) => ({
-      id: x.id, name: x.isUser ? 'Você' : x.name, status: w.statusOf(x), along: x.along, selected: x.isUser
-    }));
+    const list = [...w.drivers.values()].filter((x) => x.reg === 'aprovado' && (x.online || x.rideId))
+      .map((x) => w.driverView(x, { name: x.isUser ? 'Você' : x.name, selected: x.isUser }));
     mm.setDrivers(list);
     const shown = ride || offer;
     const key = `${shown?.id}|${shown?.state}`;
-    if (shown && (structural || key !== tripKey || performance.now() - lastTrip > 900)) {
-      mm.setTrip({
-        origin: shown.origin, dest: shown.dest, driverAlong: d.along, showPickup: ride?.state === 'a_caminho',
-        progressAlong: ride?.state === 'em_corrida' ? d.along : null
-      });
-      lastTrip = performance.now();
+    if (ride) mm.setTrip({ ...w.tripView(ride), driverId: d.id });
+    else if (offer && (structural || key !== tripKey)) {
+
+      mm.setTrip({ origin: offer.origin, dest: offer.dest, plan: w.planPath(offer.origin, offer.dest), leg: [[d.lat, d.lng], ...w.planPath(d, offer.origin)], legKind: 'pickup', driverId: d.id });
     } else if (!shown && tripKey !== '') mm.setTrip({});
     if (key !== tripKey) {
       tripKey = shown ? key : '';
-      if (shown) mm.fit(mm.bounds([shown.origin, shown.dest, { along: d.along }]));
+      if (shown) mm.fit(mm.bounds([shown.origin, shown.dest, d]));
     }
   }
 
@@ -284,8 +280,8 @@ export function mountDriver(el, scope, { onRestart }) {
     const ride = w.activeRideOfDriver(d.id);
     if (d.reg !== 'aprovado') { float.setStatus(`Cadastro: ${d.reg.replace('_', ' ')}.`); return; }
     if (ride) {
-      const toPickup = Math.abs(d.along - ride.origin.along);
-      const rem = Math.abs(d.along - ride.dest.along);
+      const toPickup = ride.state === 'a_caminho' ? w.distanceTo(d, ride.origin) : 0;
+      const rem = ride.state === 'em_corrida' ? w.distanceTo(d, ride.dest) : ride.distanceM;
       const line = ride.state === 'a_caminho' ? `Chegue ao passageiro em ${minutes(toPickup / d.speed)}` : ride.state === 'no_local' ? 'Você chegou ao embarque' : ride.atDest ? 'Você chegou ao destino' : `Destino em ${minutes(rem / d.speed)}`;
       const sub = ride.state === 'a_caminho' ? `${formatDistance(toPickup)} até o embarque` : ride.state === 'no_local' ? 'Confira o nome do passageiro e inicie a corrida.' : ride.atDest ? 'Finalize a corrida.' : `${formatDistance(rem)} restantes`;
       bindText(el, { 'd-line': line, 'd-sub': sub });

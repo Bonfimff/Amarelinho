@@ -2,7 +2,7 @@ import { html, raw } from '../../lib/text.js';
 import { icons } from '../icons.js';
 import { href } from '../router.js';
 import { DOC_TYPES } from '../../data/mock/mototaxi/seed.js';
-import { STAND_IDS, placeById } from '../../data/mock/mototaxi/corridor.js';
+import { STAND_IDS, placeById } from '../../data/mock/mototaxi/places.js';
 import { secToHHMM } from '../../lib/time.js';
 import {
   simBadge, money, km, stars, routeText, ridePill, regPill, docPill, pill, timelineList, field,
@@ -22,7 +22,7 @@ const dec = (n, d = 1) => (n == null ? 'sem dados' : n.toFixed(d).replace('.', '
 export function mountAdmin(el, scope) {
   const { w, mm, float } = scope;
   const keeper = openKeeper(el);
-  let lastTrip = 0;
+  let shownTrip = false;
 
   const head = () => html`
     <header class="view-head">
@@ -262,16 +262,12 @@ export function mountAdmin(el, scope) {
   const sched = makeScheduler(el, render);
 
   function syncMap(structural = false) {
-    const list = [...w.drivers.values()].filter((d) => d.reg === 'aprovado').map((d) => ({ id: d.id, name: d.name, status: w.statusOf(d), along: d.along, selected: false }));
-    mm.setDrivers(list);
     const ride = ui.focusRide && w.ride(ui.focusRide);
-    if (ride && ACTIVE.includes(ride.state)) {
-      const d = ride.driverId && w.driver(ride.driverId);
-      if (structural || performance.now() - lastTrip > 900) {
-        mm.setTrip({ origin: ride.origin, dest: ride.dest, driverAlong: d?.along, showPickup: ride.state === 'a_caminho', progressAlong: ride.state === 'em_corrida' && d ? d.along : null });
-        lastTrip = performance.now();
-      }
-    } else if (structural) mm.setTrip({});
+    const list = [...w.drivers.values()].filter((d) => d.reg === 'aprovado').map((d) => w.driverView(d, { selected: Boolean(ride && ride.driverId === d.id) }));
+    mm.setDrivers(list);
+    if (ride && ACTIVE.includes(ride.state)) mm.setTrip({ ...w.tripView(ride), driverId: ride.driverId });
+    else if (structural || shownTrip) mm.setTrip({});
+    shownTrip = Boolean(ride && ACTIVE.includes(ride.state));
   }
 
   function tick() {
@@ -313,7 +309,7 @@ export function mountAdmin(el, scope) {
       ui.focusRide = ui.focusRide === b.dataset.id ? null : b.dataset.id;
       const r = w.ride(ui.focusRide);
       sched.now();
-      if (r) { const d = r.driverId && w.driver(r.driverId); mm.fit(mm.bounds([r.origin, r.dest, ...(d ? [{ along: d.along }] : [])])); } else mm.fit();
+      if (r) { const d = r.driverId && w.driver(r.driverId); mm.fit(mm.bounds([r.origin, r.dest, d])); } else mm.fit();
     }
     else if (act === 'approve') { w.adminApprove(b.dataset.id); sched.now(); }
     else if (act === 'reactivate') { w.adminReactivate(b.dataset.id); sched.now(); }

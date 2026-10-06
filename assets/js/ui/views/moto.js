@@ -6,8 +6,11 @@ import { MotoFloat, world, simBadge } from '../moto/common.js';
 import { mountPassenger, resetPassengerUi } from '../moto/passenger.js';
 import { mountDriver, resetDriverUi } from '../moto/driver.js';
 import { mountAdmin } from '../moto/admin.js';
+import { roads } from '../../data/mock/mototaxi/roads.js';
+import { SERVICE_TILES } from '../../data/mock/mototaxi/places.js';
 
 let autoStarted = false;
+let roadsAsked = false;
 
 const ROLES = [
   { key: 'passageiro', icon: 'user', title: 'Passageiro', text: 'Cadastro rápido, pedido de corrida, acompanhamento da moto, avaliação e ocorrências.' },
@@ -25,7 +28,7 @@ function hub(el, scope) {
     </header>
     <div class="note note--warn" role="note">${raw(icons.info())}<div>
       <strong>Tudo aqui é fictício.</strong>
-      <p>Profissionais, passageiros, valores e regras são exemplos e não representam o serviço, as regras nem os profissionais de nenhum município. As motos andam sobre o traçado da linha TZ01 (Piabetá a Magé), a única com via calculada neste protótipo.</p>
+      <p>Profissionais, passageiros, valores e regras são exemplos e não representam o serviço, as regras nem os profissionais de nenhum município. As motos andam pelas ruas do mapa (OpenStreetMap), com rotas calculadas no próprio navegador.</p>
     </div></div>
     <ul class="roles">${ROLES.map((r) => html`
       <li><a class="role-card" href="${href(`/mototaxi/${r.key}`)}">
@@ -52,9 +55,11 @@ function hub(el, scope) {
     </section>`;
 
   const draw = () => {
-    mm.setDrivers([...w.drivers.values()].filter((d) => d.reg === 'aprovado' && (d.online || d.rideId)).map((d) => ({ id: d.id, name: d.name, status: w.statusOf(d), along: d.along, selected: false })));
+    mm.setDrivers([...w.drivers.values()].filter((d) => d.reg === 'aprovado' && (d.online || d.rideId)).map((d) => w.driverView(d)));
     const s = w.stats();
-    float.setStatus(`${s.online} profissionais online · ${s.active} ${s.active === 1 ? 'corrida' : 'corridas'} em andamento`);
+    float.setStatus(roads.ready
+      ? `${s.online} profissionais online · ${s.active} ${s.active === 1 ? 'corrida' : 'corridas'} em andamento`
+      : 'Carregando as ruas da região...');
   };
   const off = w.on('tick', draw);
   const onClick = (e) => {
@@ -82,6 +87,8 @@ export default {
     const scope = { w, mm, float, ctx };
 
     if (!autoStarted) { autoStarted = true; w.start(); }
+
+    if (!roadsAsked) { roadsAsked = true; roads.load(SERVICE_TILES).catch(() => { roadsAsked = false; }); }
 
     const role = ctx.params.papel;
     const restart = () => {
